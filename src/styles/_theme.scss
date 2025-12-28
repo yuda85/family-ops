@@ -421,15 +421,25 @@ select {
 
 // Snackbar
 .mat-mdc-snack-bar-container {
-  --mdc-snackbar-container-shape: #{$radius-lg};
+  --mdc-snackbar-container-shape: #{$radius-sm};
   --mdc-snackbar-supporting-text-font: #{$font-family-hebrew};
 }
 
 // Dialog
 .mat-mdc-dialog-container {
-  --mdc-dialog-container-shape: #{$radius-xl};
+  --mdc-dialog-container-shape: #{$radius-sm};
   --mdc-dialog-subhead-font: #{$font-family-hebrew};
   --mdc-dialog-supporting-text-font: #{$font-family-hebrew};
+}
+
+// Small radius dialog panel class
+.small-radius-dialog {
+  .mat-mdc-dialog-container,
+  .mat-mdc-dialog-surface,
+  .mdc-dialog__surface {
+    border-radius: 2px !important;
+    padding: $spacing-4 !important;
+  }
 }
 
 // Chips

@@ -27,6 +27,16 @@ export const routes: Routes = [
     title: 'בחירת משפחה - FamilyOps',
   },
 
+  // Accept invite (public - handles auth internally)
+  {
+    path: 'accept-invite/:inviteId',
+    loadComponent: () =>
+      import('./features/family/accept-invite/accept-invite.component').then(
+        (m) => m.AcceptInviteComponent
+      ),
+    title: 'קבל הזמנה - FamilyOps',
+  },
+
   // Main app routes (requires auth and family)
   {
     path: 'app',

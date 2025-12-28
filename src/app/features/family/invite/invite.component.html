@@ -1,0 +1,136 @@
+<div class="invite-page">
+  <header class="page-header">
+    <h1>הזמנה למשפחה</h1>
+  </header>
+
+  <!-- Create Invite Section -->
+  @if (familyService.isAdmin()) {
+    <section class="create-invite-section">
+      <h2>יצירת הזמנה חדשה</h2>
+
+      <form [formGroup]="inviteForm" (ngSubmit)="createInvite()" class="invite-form">
+        <mat-form-field appearance="outline">
+          <mat-label>תפקיד</mat-label>
+          <mat-select formControlName="role">
+            @for (role of availableRoles; track role.value) {
+              <mat-option [value]="role.value">
+                <mat-icon>{{ role.icon }}</mat-icon>
+                {{ role.label }}
+              </mat-option>
+            }
+          </mat-select>
+          <mat-hint>התפקיד שיקבל המוזמן</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>תוקף ההזמנה</mat-label>
+          <mat-select formControlName="expiresInDays">
+            <mat-option [value]="1">יום אחד</mat-option>
+            <mat-option [value]="3">3 ימים</mat-option>
+            <mat-option [value]="7">שבוע</mat-option>
+            <mat-option [value]="14">שבועיים</mat-option>
+            <mat-option [value]="30">חודש</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="inviteForm.invalid || isCreating()">
+          @if (isCreating()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            <ng-container>
+              <mat-icon>add_link</mat-icon>
+              צור הזמנה
+            </ng-container>
+          }
+        </button>
+      </form>
+
+      <!-- Generated Invite Link -->
+      @if (generatedInviteLink()) {
+        <div class="invite-link-box">
+          <div class="link-header">
+            <mat-icon>link</mat-icon>
+            <span>קישור הזמנה</span>
+          </div>
+          <div class="link-content">
+            <input
+              type="text"
+              [value]="generatedInviteLink()"
+              readonly
+              class="link-input"
+              #linkInput
+            />
+            <button mat-icon-button (click)="copyLink()" [matTooltip]="'העתק קישור'">
+              <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+            </button>
+          </div>
+          <p class="link-hint">שתפו את הקישור עם בני המשפחה שברצונכם להזמין</p>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Invites List Section -->
+  <section class="invites-list-section">
+    <h2>הזמנות קיימות</h2>
+
+    @if (isLoading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (invites().length === 0) {
+      <app-empty-state
+        icon="mail"
+        title="אין הזמנות"
+        description="לא נוצרו הזמנות עדיין"
+      ></app-empty-state>
+    } @else {
+      <div class="invites-list">
+        @for (invite of invites(); track invite.id) {
+          <div class="invite-card" [class.used]="invite.usedBy" [class.expired]="isExpired(invite)">
+            <div class="invite-icon">
+              <mat-icon>{{ getStatusIcon(invite) }}</mat-icon>
+            </div>
+            <div class="invite-info">
+              <div class="invite-role">
+                <mat-chip>{{ getRoleLabel(invite.role) }}</mat-chip>
+                <span class="invite-status" [class]="getStatusClass(invite)">
+                  {{ getStatusLabel(invite) }}
+                </span>
+              </div>
+              <div class="invite-meta">
+                @if (invite.usedBy) {
+                  <span>נוצל על ידי משתמש</span>
+                } @else {
+                  <span>פג תוקף: {{ formatDate(invite.expiresAt) }}</span>
+                }
+              </div>
+              <div class="invite-created">
+                נוצר: {{ formatDate(invite.createdAt) }}
+              </div>
+            </div>
+            @if (!invite.usedBy && !isExpired(invite)) {
+              <button mat-icon-button [matMenuTriggerFor]="inviteMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #inviteMenu="matMenu">
+                <button mat-menu-item (click)="copyInviteLink(invite.id)">
+                  <mat-icon>content_copy</mat-icon>
+                  <span>העתק קישור</span>
+                </button>
+                <button mat-menu-item class="danger" (click)="deleteInvite(invite.id)">
+                  <mat-icon>delete</mat-icon>
+                  <span>מחק הזמנה</span>
+                </button>
+              </mat-menu>
+            }
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

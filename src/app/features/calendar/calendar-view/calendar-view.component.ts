@@ -220,6 +220,14 @@ export class CalendarViewComponent implements OnInit {
     return getCategoryMeta(category).color;
   }
 
+  getEventChildren(event: CalendarEvent) {
+    return this.familyService.getChildren(event.childrenIds || []);
+  }
+
+  getChildInitial(name: string): string {
+    return name.charAt(0);
+  }
+
   previousPeriod(): void {
     const date = new Date(this.currentDate());
     date.setMonth(date.getMonth() - 1);
@@ -251,6 +259,7 @@ export class CalendarViewComponent implements OnInit {
       maxWidth: '500px',
       maxHeight: '90vh',
       autoFocus: false,
+      panelClass: 'small-radius-dialog',
       data: {
         date: this.selectedDate() || new Date(),
       },
@@ -270,6 +279,7 @@ export class CalendarViewComponent implements OnInit {
       maxWidth: '500px',
       maxHeight: '90vh',
       autoFocus: false,
+      panelClass: 'small-radius-dialog',
       data: {
         event: instance.event,
         date: instance.instanceDate,

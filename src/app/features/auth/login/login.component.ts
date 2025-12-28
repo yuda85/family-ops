@@ -240,6 +240,14 @@ export class LoginComponent {
     try {
       await this.authService.signInWithGoogle();
 
+      // Check for pending invite first
+      const pendingInviteId = sessionStorage.getItem('pendingInviteId');
+      if (pendingInviteId) {
+        sessionStorage.removeItem('pendingInviteId');
+        this.router.navigate(['/accept-invite', pendingInviteId]);
+        return;
+      }
+
       // Redirect to return URL or default
       const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/family-select';
       this.router.navigateByUrl(returnUrl);

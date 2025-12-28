@@ -1,0 +1,83 @@
+<div class="accept-invite-page">
+  <div class="invite-card">
+    @if (isLoading()) {
+      <div class="loading-state">
+        <mat-spinner diameter="48"></mat-spinner>
+        <p>טוען פרטי הזמנה...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <mat-icon>error_outline</mat-icon>
+        <h2>שגיאה</h2>
+        <p>{{ error() }}</p>
+        <button mat-flat-button color="primary" routerLink="/family-select">
+          חזור לבחירת משפחה
+        </button>
+      </div>
+    } @else if (invite()) {
+      @if (isAccepted()) {
+        <div class="success-state">
+          <mat-icon>check_circle</mat-icon>
+          <h2>ברוכים הבאים!</h2>
+          <p>הצטרפת בהצלחה למשפחת {{ invite()!.familyName }}</p>
+          <button mat-flat-button color="primary" (click)="goToFamily()">
+            המשך לאפליקציה
+          </button>
+        </div>
+      } @else {
+        <div class="invite-content">
+          <div class="invite-header">
+            <mat-icon class="invite-icon">family_restroom</mat-icon>
+            <h1>הזמנה למשפחה</h1>
+          </div>
+
+          <div class="invite-details">
+            <div class="detail-row">
+              <span class="label">משפחה:</span>
+              <span class="value">{{ invite()!.familyName }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">תפקיד:</span>
+              <mat-chip>{{ getRoleLabel(invite()!.role) }}</mat-chip>
+            </div>
+            <div class="detail-row">
+              <span class="label">תוקף עד:</span>
+              <span class="value">{{ formatDate(invite()!.expiresAt) }}</span>
+            </div>
+          </div>
+
+          @if (!authService.isAuthenticated()) {
+            <div class="auth-required">
+              <mat-icon>info</mat-icon>
+              <p>עליך להתחבר כדי לקבל את ההזמנה</p>
+              <button mat-flat-button color="primary" (click)="signInAndAccept()">
+                <mat-icon>login</mat-icon>
+                התחבר וקבל הזמנה
+              </button>
+            </div>
+          } @else {
+            <div class="actions">
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="acceptInvite()"
+                [disabled]="isAccepting()">
+                @if (isAccepting()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  <ng-container>
+                    <mat-icon>check</mat-icon>
+                    קבל הזמנה
+                  </ng-container>
+                }
+              </button>
+              <button mat-button routerLink="/family-select">
+                ביטול
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

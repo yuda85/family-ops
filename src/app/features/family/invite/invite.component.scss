@@ -1,0 +1,216 @@
+.invite-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.page-header {
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+  }
+}
+
+// Create Invite Section
+.create-invite-section {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  padding: 1.5rem;
+
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1.25rem;
+    color: var(--text-primary);
+  }
+}
+
+.invite-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  button[type="submit"] {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    mat-spinner {
+      margin-inline-end: 0.5rem;
+    }
+  }
+}
+
+.invite-link-box {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--surface-secondary);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-primary);
+
+  .link-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: var(--color-primary);
+    margin-bottom: 0.75rem;
+
+    mat-icon {
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .link-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .link-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 0.5rem;
+    background: var(--surface-primary);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-family: monospace;
+    direction: ltr;
+    text-align: left;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+  }
+
+  .link-hint {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+}
+
+// Invites List Section
+.invites-list-section {
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: var(--text-primary);
+  }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.invites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.invite-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  transition: opacity 0.2s ease;
+
+  &.used,
+  &.expired {
+    opacity: 0.6;
+  }
+
+  .invite-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+
+    mat-icon {
+      font-size: 1.25rem;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  &.used .invite-icon {
+    background: rgba(var(--color-success-rgb), 0.1);
+    color: var(--color-success);
+  }
+
+  &.expired .invite-icon {
+    background: rgba(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
+  }
+
+  .invite-info {
+    flex: 1;
+    min-width: 0;
+
+    .invite-role {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .invite-status {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.125rem 0.5rem;
+      border-radius: 1rem;
+
+      &.pending {
+        background: rgba(var(--color-warning-rgb), 0.1);
+        color: var(--color-warning);
+      }
+
+      &.used {
+        background: rgba(var(--color-success-rgb), 0.1);
+        color: var(--color-success);
+      }
+
+      &.expired {
+        background: rgba(var(--color-error-rgb), 0.1);
+        color: var(--color-error);
+      }
+    }
+
+    .invite-meta,
+    .invite-created {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .invite-meta {
+      margin-bottom: 0.125rem;
+    }
+  }
+}
+
+.danger {
+  color: var(--color-error) !important;
+}

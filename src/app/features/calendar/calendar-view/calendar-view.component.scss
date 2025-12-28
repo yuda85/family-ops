@@ -291,6 +291,24 @@
       }
     }
 
+    .event-children {
+      display: flex;
+      gap: var(--spacing-1);
+      margin-top: var(--spacing-1);
+    }
+
+    .child-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: white;
+      font-family: var(--font-family-hebrew);
+    }
   }
 
   .event-arrow {

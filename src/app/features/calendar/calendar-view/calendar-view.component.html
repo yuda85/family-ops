@@ -135,6 +135,17 @@
                     </span>
                   }
                 </div>
+
+                <!-- Children -->
+                @if (getEventChildren(instance.event).length > 0) {
+                  <div class="event-children">
+                    @for (child of getEventChildren(instance.event); track child.id) {
+                      <span class="child-badge" [style.background]="child.color">
+                        {{ getChildInitial(child.name) }}
+                      </span>
+                    }
+                  </div>
+                }
               </div>
               <mat-icon class="event-arrow">chevron_left</mat-icon>
             </div>

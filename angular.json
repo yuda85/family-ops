@@ -45,7 +45,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/FamilyOps/",
+              "baseHref": "/family-ops/",
               "budgets": [
                 {
                   "type": "initial",

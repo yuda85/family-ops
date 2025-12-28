@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -198,6 +199,7 @@ import { FamilyRole } from '../../../core/auth/auth.models';
   `]
 })
 export class MembersComponent {
+  private router = inject(Router);
   familyService = inject(FamilyService);
   authService = inject(AuthService);
 
@@ -221,8 +223,7 @@ export class MembersComponent {
   }
 
   inviteMember(): void {
-    // TODO: Open invite dialog
-    console.log('Invite member');
+    this.router.navigate(['/app/family/invite']);
   }
 
   async changeRole(memberId: string, role: FamilyRole): Promise<void> {
