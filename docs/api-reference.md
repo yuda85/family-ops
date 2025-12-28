@@ -12,6 +12,7 @@ Manages authentication and user state.
 
 #### Signals
 
+
 | Name | Type | Description |
 |------|------|-------------|
 | `firebaseUser` | `Signal<User \| null>` | Firebase Auth user object |
