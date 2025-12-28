@@ -1,0 +1,291 @@
+// ============================================
+// FamilyOps Design System - Typography
+// Hebrew-optimized Typography System
+// ============================================
+
+@use 'variables' as *;
+@use 'mixins' as *;
+
+// ---------------------------------------------
+// Google Fonts Import
+// ---------------------------------------------
+
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&family=Rubik:wght@400;500;600;700&display=swap');
+
+// ---------------------------------------------
+// Base Typography
+// ---------------------------------------------
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-family-hebrew;
+  font-size: $font-size-base;
+  font-weight: $font-weight-regular;
+  line-height: $line-height-normal;
+  color: var(--text-primary);
+}
+
+// ---------------------------------------------
+// Headings
+// ---------------------------------------------
+
+h1, .h1 {
+  @include heading-1;
+  color: var(--text-primary);
+  margin-bottom: $spacing-4;
+}
+
+h2, .h2 {
+  @include heading-2;
+  color: var(--text-primary);
+  margin-bottom: $spacing-3;
+}
+
+h3, .h3 {
+  @include heading-3;
+  color: var(--text-primary);
+  margin-bottom: $spacing-3;
+}
+
+h4, .h4 {
+  @include heading-4;
+  color: var(--text-primary);
+  margin-bottom: $spacing-2;
+}
+
+h5, .h5 {
+  font-family: $font-family-display;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+  color: var(--text-primary);
+  margin-bottom: $spacing-2;
+}
+
+h6, .h6 {
+  font-family: $font-family-display;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+  color: var(--text-secondary);
+  margin-bottom: $spacing-2;
+}
+
+// ---------------------------------------------
+// Body Text
+// ---------------------------------------------
+
+p {
+  margin-bottom: $spacing-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.lead {
+  @include body-large;
+  color: var(--text-secondary);
+}
+
+.body-large {
+  @include body-large;
+}
+
+.body-base {
+  @include body-base;
+}
+
+.body-small {
+  @include body-small;
+}
+
+.caption {
+  @include caption;
+  color: var(--text-tertiary);
+}
+
+.overline {
+  font-family: $font-family-hebrew;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+// ---------------------------------------------
+// Links
+// ---------------------------------------------
+
+a {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: var(--text-link-hover);
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: $radius-sm;
+  }
+}
+
+// ---------------------------------------------
+// Text Utilities
+// ---------------------------------------------
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-disabled { color: var(--text-disabled); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+.text-info { color: var(--color-info); }
+
+.font-light { font-weight: $font-weight-light; }
+.font-regular { font-weight: $font-weight-regular; }
+.font-medium { font-weight: $font-weight-medium; }
+.font-semibold { font-weight: $font-weight-semibold; }
+.font-bold { font-weight: $font-weight-bold; }
+
+.italic { font-style: italic; }
+.underline { text-decoration: underline; }
+.line-through { text-decoration: line-through; }
+.no-underline { text-decoration: none; }
+
+.truncate {
+  @include truncate;
+}
+
+.line-clamp-2 {
+  @include line-clamp(2);
+}
+
+.line-clamp-3 {
+  @include line-clamp(3);
+}
+
+// ---------------------------------------------
+// Lists
+// ---------------------------------------------
+
+ul, ol {
+  margin-bottom: $spacing-4;
+
+  li {
+    margin-bottom: $spacing-2;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.list-none {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+// ---------------------------------------------
+// Blockquote
+// ---------------------------------------------
+
+blockquote {
+  margin: $spacing-6 0;
+  padding: $spacing-4 $spacing-6;
+  border-inline-start: 4px solid var(--color-primary);
+  background: var(--surface-secondary);
+  border-radius: 0 $radius-lg $radius-lg 0;
+
+  p {
+    @include body-large;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  cite {
+    display: block;
+    margin-top: $spacing-2;
+    @include body-small;
+    color: var(--text-tertiary);
+
+    &::before {
+      content: '— ';
+    }
+  }
+}
+
+// ---------------------------------------------
+// Code
+// ---------------------------------------------
+
+code {
+  font-family: $font-family-mono;
+  font-size: 0.9em;
+  padding: $spacing-1 $spacing-2;
+  background: var(--surface-secondary);
+  border-radius: $radius-sm;
+  color: var(--color-primary);
+}
+
+pre {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  padding: $spacing-4;
+  background: var(--surface-secondary);
+  border-radius: $radius-lg;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+
+  code {
+    padding: 0;
+    background: none;
+  }
+}
+
+// ---------------------------------------------
+// Selection
+// ---------------------------------------------
+
+::selection {
+  background: var(--color-primary-alpha);
+  color: var(--text-primary);
+}
+
+// ---------------------------------------------
+// Hebrew-specific Styles
+// ---------------------------------------------
+
+// Hebrew dates
+.hebrew-date {
+  font-family: $font-family-hebrew;
+  direction: rtl;
+}
+
+// Mixed content (Hebrew with English/numbers)
+.mixed-content {
+  unicode-bidi: plaintext;
+}
+
+// Price display (currency on right in Hebrew)
+.price {
+  direction: rtl;
+
+  .currency {
+    margin-inline-start: $spacing-1;
+  }
+}

@@ -1,1 +1,601 @@
-/* You can add global styles to this file, and also import other style files */
+// ============================================
+// FamilyOps - Main Stylesheet
+// Hebrew-first RTL Family Management App
+// ============================================
+
+// Import design system
+@use 'styles/variables' as *;
+@use 'styles/mixins' as *;
+@use 'styles/theme';
+@use 'styles/typography';
+@use 'styles/rtl';
+
+// ---------------------------------------------
+// CSS Reset & Base Styles
+// ---------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+  background: var(--surface-app);
+  transition: background-color $transition-normal, color $transition-normal;
+  overflow-x: hidden;
+}
+
+// Improve media defaults
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+// Remove built-in form typography styles
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+// Avoid text overflows
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+// Create a root stacking context
+#root,
+#__next {
+  isolation: isolate;
+}
+
+// Remove list styles on ul, ol elements
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+// Set core body defaults
+body {
+  text-rendering: optimizeSpeed;
+  line-height: $line-height-normal;
+}
+
+// Make images easier to work with
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+// Remove all animations and transitions for people that prefer not to see them
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// ---------------------------------------------
+// App Container
+// ---------------------------------------------
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+// ---------------------------------------------
+// Page Layout
+// ---------------------------------------------
+
+.page {
+  flex: 1;
+  padding: $spacing-4;
+  padding-bottom: calc($spacing-4 + $bottom-nav-height);
+
+  @include md {
+    padding: $spacing-6;
+    padding-bottom: $spacing-6;
+  }
+}
+
+.page-header {
+  margin-bottom: $spacing-6;
+
+  .page-title {
+    @include heading-2;
+    margin-bottom: $spacing-2;
+  }
+
+  .page-subtitle {
+    @include body-base;
+    color: var(--text-secondary);
+  }
+}
+
+.page-content {
+  @include container;
+}
+
+// ---------------------------------------------
+// Cards
+// ---------------------------------------------
+
+.card {
+  @include card;
+  padding: $spacing-4;
+
+  @include md {
+    padding: $spacing-6;
+  }
+
+  &.card-interactive {
+    @include card-hover;
+    cursor: pointer;
+  }
+}
+
+.card-header {
+  margin-bottom: $spacing-4;
+
+  .card-title {
+    @include heading-4;
+    margin-bottom: $spacing-1;
+  }
+
+  .card-subtitle {
+    @include body-small;
+    color: var(--text-secondary);
+  }
+}
+
+.card-body {
+  // Content styles
+}
+
+.card-footer {
+  margin-top: $spacing-4;
+  padding-top: $spacing-4;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  gap: $spacing-3;
+  justify-content: flex-start;
+}
+
+// ---------------------------------------------
+// Buttons
+// ---------------------------------------------
+
+.btn {
+  @include button-base;
+}
+
+.btn-primary {
+  @include button-primary;
+}
+
+.btn-secondary {
+  @include button-secondary;
+}
+
+.btn-ghost {
+  @include button-ghost;
+}
+
+.btn-icon {
+  @include button-ghost;
+  padding: $spacing-2;
+  border-radius: $radius-full;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.btn-fab {
+  @include button-primary;
+  position: fixed;
+  bottom: calc($bottom-nav-height + $spacing-4);
+  inset-inline-end: $spacing-4;
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-full;
+  box-shadow: $shadow-lg;
+  z-index: $z-fixed;
+
+  @include md {
+    bottom: $spacing-6;
+    inset-inline-end: $spacing-6;
+  }
+}
+
+// ---------------------------------------------
+// Forms
+// ---------------------------------------------
+
+.form-group {
+  margin-bottom: $spacing-4;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: $spacing-2;
+  @include body-small;
+  font-weight: $font-weight-medium;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  @include input-base;
+}
+
+.form-textarea {
+  @include input-base;
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-error {
+  margin-top: $spacing-1;
+  @include caption;
+  color: var(--color-error);
+}
+
+.form-hint {
+  margin-top: $spacing-1;
+  @include caption;
+  color: var(--text-tertiary);
+}
+
+// ---------------------------------------------
+// Badges & Tags
+// ---------------------------------------------
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  border-radius: $radius-full;
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+}
+
+.badge-primary {
+  background: var(--color-primary-alpha);
+  color: var(--color-primary);
+}
+
+.badge-success {
+  background: rgba($color-success, 0.15);
+  color: var(--color-success);
+}
+
+.badge-warning {
+  background: rgba($color-warning, 0.15);
+  color: var(--color-warning);
+}
+
+.badge-error {
+  background: rgba($color-error, 0.15);
+  color: var(--color-error);
+}
+
+// Category badges
+.badge-category {
+  &.school { background: rgba($color-category-school, 0.15); color: var(--color-category-school); }
+  &.activity { background: rgba($color-category-activity, 0.15); color: var(--color-category-activity); }
+  &.family { background: rgba($color-category-family, 0.15); color: var(--color-category-family); }
+  &.general { background: rgba($color-category-general, 0.15); color: var(--color-category-general); }
+  &.vacation { background: rgba($color-category-vacation, 0.15); color: var(--color-category-vacation); }
+  &.car { background: rgba($color-category-car, 0.15); color: var(--color-category-car); }
+  &.health { background: rgba($color-category-health, 0.15); color: var(--color-category-health); }
+  &.other { background: rgba($color-category-other, 0.15); color: var(--color-category-other); }
+}
+
+// ---------------------------------------------
+// Avatar
+// ---------------------------------------------
+
+.avatar {
+  @include flex-center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-full;
+  background: var(--color-primary);
+  color: white;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &.avatar-sm {
+    width: 32px;
+    height: 32px;
+    font-size: $font-size-xs;
+  }
+
+  &.avatar-lg {
+    width: 56px;
+    height: 56px;
+    font-size: $font-size-xl;
+  }
+
+  &.avatar-xl {
+    width: 80px;
+    height: 80px;
+    font-size: $font-size-2xl;
+  }
+}
+
+// Child avatar with color
+.child-avatar {
+  @extend .avatar;
+
+  &[data-color] {
+    background: var(--child-color, var(--color-primary));
+  }
+}
+
+// ---------------------------------------------
+// Divider
+// ---------------------------------------------
+
+.divider {
+  height: 1px;
+  background: var(--border-default);
+  margin: $spacing-4 0;
+}
+
+.divider-vertical {
+  width: 1px;
+  height: 100%;
+  background: var(--border-default);
+  margin: 0 $spacing-4;
+}
+
+// ---------------------------------------------
+// Empty State
+// ---------------------------------------------
+
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-12 $spacing-4;
+  text-align: center;
+
+  .empty-state-icon {
+    font-size: 64px;
+    color: var(--text-tertiary);
+    margin-bottom: $spacing-4;
+  }
+
+  .empty-state-title {
+    @include heading-4;
+    margin-bottom: $spacing-2;
+  }
+
+  .empty-state-description {
+    @include body-base;
+    color: var(--text-secondary);
+    max-width: 400px;
+    margin-bottom: $spacing-6;
+  }
+}
+
+// ---------------------------------------------
+// Loading States
+// ---------------------------------------------
+
+.skeleton {
+  @include skeleton;
+  min-height: 20px;
+}
+
+.skeleton-text {
+  @include skeleton;
+  height: 16px;
+  margin-bottom: $spacing-2;
+
+  &:last-child {
+    width: 60%;
+  }
+}
+
+.skeleton-avatar {
+  @include skeleton;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-full;
+}
+
+.skeleton-card {
+  @include skeleton;
+  height: 120px;
+  border-radius: $radius-xl;
+}
+
+// Spinner
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--color-primary);
+  border-radius: $radius-full;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ---------------------------------------------
+// Overlay & Backdrop
+// ---------------------------------------------
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--surface-overlay);
+  z-index: $z-modal-backdrop;
+  @include fade-in;
+}
+
+// ---------------------------------------------
+// Utility Classes
+// ---------------------------------------------
+
+// Display
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+
+// Flex utilities
+.flex-1 { flex: 1; }
+.flex-auto { flex: auto; }
+.flex-none { flex: none; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+
+// Spacing
+.m-0 { margin: 0; }
+.m-auto { margin: auto; }
+.mt-2 { margin-top: $spacing-2; }
+.mt-4 { margin-top: $spacing-4; }
+.mt-6 { margin-top: $spacing-6; }
+.mb-2 { margin-bottom: $spacing-2; }
+.mb-4 { margin-bottom: $spacing-4; }
+.mb-6 { margin-bottom: $spacing-6; }
+.my-4 { margin-block: $spacing-4; }
+.mx-auto { margin-inline: auto; }
+
+.p-0 { padding: 0; }
+.p-2 { padding: $spacing-2; }
+.p-4 { padding: $spacing-4; }
+.p-6 { padding: $spacing-6; }
+.px-4 { padding-inline: $spacing-4; }
+.py-4 { padding-block: $spacing-4; }
+
+// Width & Height
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+// Position
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+// Overflow
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
+
+// Cursor
+.cursor-pointer { cursor: pointer; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+// Visibility
+.invisible { visibility: hidden; }
+.visible { visibility: visible; }
+
+// Opacity
+.opacity-0 { opacity: 0; }
+.opacity-50 { opacity: 0.5; }
+.opacity-100 { opacity: 1; }
+
+// Pointer events
+.pointer-events-none { pointer-events: none; }
+.pointer-events-auto { pointer-events: auto; }
+
+// Transitions
+.transition { transition: all $transition-normal; }
+.transition-fast { transition: all $transition-fast; }
+.transition-slow { transition: all $transition-slow; }
+
+// ---------------------------------------------
+// Responsive utilities
+// ---------------------------------------------
+
+.mobile-only {
+  @include desktop-only {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  @include mobile-only {
+    display: none !important;
+  }
+}
+
+// ---------------------------------------------
+// Angular Material Overrides
+// ---------------------------------------------
+
+// Global Material overrides for RTL and theme
+.mat-mdc-card {
+  @include card;
+}
+
+.mat-mdc-dialog-container {
+  direction: rtl;
+}
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mat-mdc-button-base {
+  font-family: $font-family-hebrew !important;
+}
+
+// Fix Material icons in RTL
+.mat-icon {
+  direction: ltr;
+  display: inline-flex !important;
+}

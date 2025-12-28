@@ -1,0 +1,427 @@
+// ============================================
+// FamilyOps Design System - Theme
+// Light & Dark Mode CSS Custom Properties
+// ============================================
+
+@use 'sass:color';
+@use 'variables' as *;
+
+// ---------------------------------------------
+// Light Theme (Default)
+// ---------------------------------------------
+
+:root,
+[data-theme='light'] {
+  // Primary colors
+  --color-primary: #{$color-primary-500};
+  --color-primary-light: #{$color-primary-400};
+  --color-primary-dark: #{$color-primary-600};
+  --color-primary-alpha: #{rgba($color-primary-500, 0.15)};
+  --color-primary-rgb: 196, 112, 79;
+
+  // Secondary colors
+  --color-secondary: #{$color-secondary-400};
+  --color-secondary-light: #{$color-secondary-300};
+  --color-secondary-dark: #{$color-secondary-500};
+  --color-secondary-alpha: #{rgba($color-secondary-400, 0.15)};
+
+  // Accent colors
+  --color-accent-coral: #{$color-accent-coral};
+  --color-accent-gold: #{$color-accent-gold};
+  --color-accent-sky: #{$color-accent-sky};
+  --color-accent-lavender: #{$color-accent-lavender};
+
+  // Semantic colors
+  --color-success: #{$color-success};
+  --color-warning: #{$color-warning};
+  --color-error: #{$color-error};
+  --color-info: #{$color-info};
+
+  // Category colors
+  --color-category-school: #{$color-category-school};
+  --color-category-activity: #{$color-category-activity};
+  --color-category-family: #{$color-category-family};
+  --color-category-general: #{$color-category-general};
+  --color-category-vacation: #{$color-category-vacation};
+  --color-category-car: #{$color-category-car};
+  --color-category-health: #{$color-category-health};
+  --color-category-other: #{$color-category-other};
+
+  // Background surfaces
+  --surface-app: #{$color-neutral-100};
+  --surface-primary: #ffffff;
+  --surface-primary-rgb: 255, 255, 255;
+  --surface-secondary: #{$color-neutral-50};
+  --surface-tertiary: #{$color-neutral-100};
+  --surface-hover: #{$color-neutral-100};
+  --surface-active: #{$color-neutral-200};
+  --surface-disabled: #{$color-neutral-100};
+  --surface-overlay: #{rgba(#000, 0.5)};
+
+  // Text colors
+  --text-primary: #{$color-neutral-950};
+  --text-secondary: #{$color-neutral-700};
+  --text-tertiary: #{$color-neutral-500};
+  --text-disabled: #{$color-neutral-400};
+  --text-inverse: #ffffff;
+  --text-link: #{$color-primary-600};
+  --text-link-hover: #{$color-primary-700};
+
+  // Border colors
+  --border-subtle: #{$color-neutral-100};
+  --border-default: #{$color-neutral-200};
+  --border-strong: #{$color-neutral-300};
+  --border-focus: #{$color-primary-500};
+
+  // Shadows
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+
+  // Component-specific
+  --header-bg: #ffffff;
+  --sidebar-bg: #ffffff;
+  --bottom-nav-bg: #ffffff;
+  --card-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --tooltip-bg: #{$color-neutral-900};
+  --tooltip-text: #ffffff;
+}
+
+// ---------------------------------------------
+// Dark Theme
+// ---------------------------------------------
+
+[data-theme='dark'] {
+  // Primary colors (slightly muted for dark mode)
+  --color-primary: #{$color-primary-400};
+  --color-primary-light: #{$color-primary-300};
+  --color-primary-dark: #{$color-primary-500};
+  --color-primary-alpha: #{rgba($color-primary-400, 0.2)};
+  --color-primary-rgb: 228, 131, 106;
+
+  // Secondary colors
+  --color-secondary: #{$color-secondary-400};
+  --color-secondary-light: #{$color-secondary-300};
+  --color-secondary-dark: #{$color-secondary-500};
+  --color-secondary-alpha: #{rgba($color-secondary-400, 0.2)};
+
+  // Accent colors (brighter for dark mode)
+  --color-accent-coral: #{color.adjust($color-accent-coral, $lightness: 5%)};
+  --color-accent-gold: #{color.adjust($color-accent-gold, $lightness: 5%)};
+  --color-accent-sky: #{color.adjust($color-accent-sky, $lightness: 5%)};
+  --color-accent-lavender: #{color.adjust($color-accent-lavender, $lightness: 5%)};
+
+  // Semantic colors
+  --color-success: #{color.adjust($color-success, $lightness: 10%)};
+  --color-warning: #{color.adjust($color-warning, $lightness: 5%)};
+  --color-error: #{color.adjust($color-error, $lightness: 10%)};
+  --color-info: #{color.adjust($color-info, $lightness: 10%)};
+
+  // Category colors (slightly adjusted for dark)
+  --color-category-school: #{color.adjust($color-category-school, $lightness: 10%)};
+  --color-category-activity: #{color.adjust($color-category-activity, $lightness: 5%)};
+  --color-category-family: #{$color-primary-400};
+  --color-category-general: #{color.adjust($color-category-general, $lightness: 15%)};
+  --color-category-vacation: #{color.adjust($color-category-vacation, $lightness: 5%)};
+  --color-category-car: #{color.adjust($color-category-car, $lightness: 10%)};
+  --color-category-health: #{color.adjust($color-category-health, $lightness: 10%)};
+  --color-category-other: #{color.adjust($color-category-other, $lightness: 10%)};
+
+  // Background surfaces - warm charcoal tones
+  --surface-app: #121212;
+  --surface-primary: #1e1e1e;
+  --surface-primary-rgb: 30, 30, 30;
+  --surface-secondary: #252525;
+  --surface-tertiary: #2a2a2a;
+  --surface-hover: #333333;
+  --surface-active: #3d3d3d;
+  --surface-disabled: #252525;
+  --surface-overlay: #{rgba(#000, 0.7)};
+
+  // Text colors
+  --text-primary: #f5f5f5;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #808080;
+  --text-disabled: #5c5c5c;
+  --text-inverse: #121212;
+  --text-link: #{$color-primary-300};
+  --text-link-hover: #{$color-primary-200};
+
+  // Border colors
+  --border-subtle: #2a2a2a;
+  --border-default: #3d3d3d;
+  --border-strong: #525252;
+  --border-focus: #{$color-primary-400};
+
+  // Shadows (warmer tint in dark mode)
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+
+  // Component-specific
+  --header-bg: #1e1e1e;
+  --sidebar-bg: #1e1e1e;
+  --bottom-nav-bg: #1e1e1e;
+  --card-bg: #252525;
+  --modal-bg: #252525;
+  --tooltip-bg: #f5f5f5;
+  --tooltip-text: #1e1e1e;
+}
+
+// ---------------------------------------------
+// System Theme Detection
+// ---------------------------------------------
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    // Apply dark theme variables when system is dark
+    // and no explicit theme is set
+    --color-primary: #{$color-primary-400};
+    --color-primary-light: #{$color-primary-300};
+    --color-primary-dark: #{$color-primary-500};
+    --color-primary-alpha: #{rgba($color-primary-400, 0.2)};
+    --color-primary-rgb: 228, 131, 106;
+
+    --color-secondary: #{$color-secondary-400};
+    --color-secondary-light: #{$color-secondary-300};
+    --color-secondary-dark: #{$color-secondary-500};
+    --color-secondary-alpha: #{rgba($color-secondary-400, 0.2)};
+
+    --surface-app: #121212;
+    --surface-primary: #1e1e1e;
+    --surface-primary-rgb: 30, 30, 30;
+    --surface-secondary: #252525;
+    --surface-tertiary: #2a2a2a;
+    --surface-hover: #333333;
+    --surface-active: #3d3d3d;
+    --surface-disabled: #252525;
+    --surface-overlay: #{rgba(#000, 0.7)};
+
+    --text-primary: #f5f5f5;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #808080;
+    --text-disabled: #5c5c5c;
+    --text-inverse: #121212;
+    --text-link: #{$color-primary-300};
+    --text-link-hover: #{$color-primary-200};
+
+    --border-subtle: #2a2a2a;
+    --border-default: #3d3d3d;
+    --border-strong: #525252;
+    --border-focus: #{$color-primary-400};
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+
+    --header-bg: #1e1e1e;
+    --sidebar-bg: #1e1e1e;
+    --bottom-nav-bg: #1e1e1e;
+    --card-bg: #252525;
+    --modal-bg: #252525;
+    --tooltip-bg: #f5f5f5;
+    --tooltip-text: #1e1e1e;
+  }
+}
+
+// ---------------------------------------------
+// Angular Material Theme Overrides
+// ---------------------------------------------
+
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-stroked-button,
+.mat-mdc-flat-button {
+  --mdc-text-button-label-text-font: #{$font-family-hebrew};
+  --mdc-filled-button-label-text-font: #{$font-family-hebrew};
+  --mdc-outlined-button-label-text-font: #{$font-family-hebrew};
+  border-radius: $radius-lg !important;
+}
+
+.mat-mdc-form-field {
+  --mdc-filled-text-field-label-text-font: #{$font-family-hebrew};
+  --mdc-outlined-text-field-label-text-font: #{$font-family-hebrew};
+}
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: #{$radius-xl};
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-shape: #{$radius-lg};
+}
+
+// ---------------------------------------------
+// Dark Mode Material Overrides
+// ---------------------------------------------
+
+[data-theme='dark'] {
+  // Button text colors
+  .mat-mdc-button,
+  .mat-mdc-outlined-button {
+    --mdc-text-button-label-text-color: var(--text-primary);
+    --mdc-outlined-button-label-text-color: var(--text-primary);
+  }
+
+  // Icon button colors
+  .mat-mdc-icon-button {
+    --mdc-icon-button-icon-color: var(--text-primary);
+  }
+
+  // Menu colors
+  .mat-mdc-menu-panel {
+    --mat-menu-container-color: var(--surface-primary);
+  }
+
+  .mat-mdc-menu-item {
+    --mat-menu-item-label-text-color: var(--text-primary);
+    --mat-menu-item-icon-color: var(--text-secondary);
+
+    &:hover:not([disabled]) {
+      background: var(--surface-hover);
+    }
+  }
+
+  // Toolbar
+  .mat-toolbar {
+    --mat-toolbar-container-background-color: var(--header-bg);
+    --mat-toolbar-container-text-color: var(--text-primary);
+  }
+
+  // Button toggle
+  .mat-button-toggle-group {
+    --mat-standard-button-toggle-selected-state-background-color: var(--color-primary);
+    --mat-standard-button-toggle-selected-state-text-color: white;
+    --mat-standard-button-toggle-text-color: var(--text-primary);
+    --mat-standard-button-toggle-background-color: var(--surface-secondary);
+    --mat-standard-button-toggle-divider-color: var(--border-default);
+  }
+
+  // Cards
+  .mat-mdc-card {
+    --mdc-elevated-card-container-color: var(--surface-primary);
+  }
+
+  // Dialogs
+  .mat-mdc-dialog-container {
+    --mdc-dialog-container-color: var(--modal-bg);
+  }
+
+  // Form fields
+  .mat-mdc-form-field {
+    --mdc-filled-text-field-container-color: var(--surface-secondary);
+    --mdc-outlined-text-field-outline-color: var(--border-default);
+    --mdc-filled-text-field-input-text-color: var(--text-primary);
+    --mdc-outlined-text-field-input-text-color: var(--text-primary);
+    --mdc-filled-text-field-label-text-color: var(--text-secondary);
+    --mdc-outlined-text-field-label-text-color: var(--text-secondary);
+  }
+
+  // Divider
+  .mat-divider {
+    --mat-divider-color: var(--border-default);
+  }
+
+  // Tooltip
+  .mat-mdc-tooltip {
+    --mdc-plain-tooltip-container-color: var(--tooltip-bg);
+    --mdc-plain-tooltip-supporting-text-color: var(--tooltip-text);
+  }
+
+  // FAB
+  .mat-mdc-fab,
+  .mat-mdc-mini-fab {
+    --mdc-fab-container-color: var(--color-primary);
+  }
+
+  // Progress indicators
+  .mat-mdc-progress-spinner {
+    --mdc-circular-progress-active-indicator-color: var(--color-primary);
+  }
+
+  // Chips
+  .mat-mdc-chip {
+    --mdc-chip-elevated-container-color: var(--surface-secondary);
+    --mdc-chip-label-text-color: var(--text-primary);
+  }
+
+  // Tabs
+  .mat-mdc-tab-group {
+    --mdc-tab-indicator-active-indicator-color: var(--color-primary);
+    --mat-tab-header-active-label-text-color: var(--color-primary);
+    --mat-tab-header-inactive-label-text-color: var(--text-secondary);
+  }
+}
+
+// Also apply dark mode via system preference
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    // Button text colors
+    .mat-mdc-button,
+    .mat-mdc-outlined-button {
+      --mdc-text-button-label-text-color: var(--text-primary);
+      --mdc-outlined-button-label-text-color: var(--text-primary);
+    }
+
+    .mat-mdc-icon-button {
+      --mdc-icon-button-icon-color: var(--text-primary);
+    }
+
+    .mat-mdc-menu-panel {
+      --mat-menu-container-color: var(--surface-primary);
+    }
+
+    .mat-mdc-menu-item {
+      --mat-menu-item-label-text-color: var(--text-primary);
+      --mat-menu-item-icon-color: var(--text-secondary);
+    }
+
+    .mat-toolbar {
+      --mat-toolbar-container-background-color: var(--header-bg);
+      --mat-toolbar-container-text-color: var(--text-primary);
+    }
+
+    .mat-button-toggle-group {
+      --mat-standard-button-toggle-selected-state-background-color: var(--color-primary);
+      --mat-standard-button-toggle-selected-state-text-color: white;
+      --mat-standard-button-toggle-text-color: var(--text-primary);
+      --mat-standard-button-toggle-background-color: var(--surface-secondary);
+      --mat-standard-button-toggle-divider-color: var(--border-default);
+    }
+
+    .mat-mdc-card {
+      --mdc-elevated-card-container-color: var(--surface-primary);
+    }
+
+    .mat-mdc-dialog-container {
+      --mdc-dialog-container-color: var(--modal-bg);
+    }
+
+    .mat-mdc-form-field {
+      --mdc-filled-text-field-container-color: var(--surface-secondary);
+      --mdc-outlined-text-field-outline-color: var(--border-default);
+      --mdc-filled-text-field-input-text-color: var(--text-primary);
+      --mdc-outlined-text-field-input-text-color: var(--text-primary);
+      --mdc-filled-text-field-label-text-color: var(--text-secondary);
+      --mdc-outlined-text-field-label-text-color: var(--text-secondary);
+    }
+
+    .mat-divider {
+      --mat-divider-color: var(--border-default);
+    }
+
+    .mat-mdc-tooltip {
+      --mdc-plain-tooltip-container-color: var(--tooltip-bg);
+      --mdc-plain-tooltip-supporting-text-color: var(--tooltip-text);
+    }
+
+    .mat-mdc-fab,
+    .mat-mdc-mini-fab {
+      --mdc-fab-container-color: var(--color-primary);
+    }
+  }
+}

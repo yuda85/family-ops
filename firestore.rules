@@ -1,0 +1,116 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isFamilyMember(familyId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid));
+    }
+
+    function getFamilyRole(familyId) {
+      return get(/databases/$(database)/documents/families/$(familyId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function isFamilyAdmin(familyId) {
+      let role = getFamilyRole(familyId);
+      return role == 'owner' || role == 'admin';
+    }
+
+    function isFamilyOwner(familyId) {
+      return getFamilyRole(familyId) == 'owner';
+    }
+
+    function canWrite(familyId) {
+      let role = getFamilyRole(familyId);
+      return role == 'owner' || role == 'admin' || role == 'member';
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['createdAt']);
+    }
+
+    // Families collection
+    match /families/{familyId} {
+      allow read: if isFamilyMember(familyId);
+      allow create: if isAuthenticated();
+      allow update: if isFamilyAdmin(familyId);
+      allow delete: if isFamilyOwner(familyId);
+
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isFamilyMember(familyId);
+        // Allow create if:
+        // 1. User is family admin (for inviting others), OR
+        // 2. User is the family owner creating their own member doc (during family creation), OR
+        // 3. User is joining themselves via invite (self-join)
+        allow create: if isFamilyAdmin(familyId) ||
+          (isOwner(memberId) && get(/databases/$(database)/documents/families/$(familyId)).data.ownerUserId == request.auth.uid) ||
+          (isOwner(memberId) && resource == null); // Self-join via invite
+        allow update: if isFamilyAdmin(familyId) &&
+          !(memberId == request.auth.uid && request.resource.data.role != resource.data.role); // Can't change own role
+        allow delete: if isFamilyAdmin(familyId) && memberId != request.auth.uid;
+      }
+
+      // Children subcollection
+      match /children/{childId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
+      // Events subcollection
+      match /events/{eventId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
+      // Event Templates subcollection
+      match /eventTemplates/{templateId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
+      // Shopping Lists subcollection
+      match /shoppingLists/{listId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
+      // Staples subcollection
+      match /staples/{staplesId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+    }
+
+    // Global shopping catalog (read-only)
+    match /shoppingCatalog/{itemId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Admin only via console/functions
+    }
+
+    // Invites collection
+    match /invites/{inviteId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        isFamilyAdmin(request.resource.data.familyId);
+      allow update: if isAuthenticated() &&
+        resource.data.usedBy == null &&
+        request.resource.data.usedBy == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        isFamilyAdmin(resource.data.familyId);
+    }
+  }
+}

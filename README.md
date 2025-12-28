@@ -1,59 +1,142 @@
-# FamilyOps
+# FamilyOps 👨‍👩‍👧‍👦
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
+אפליקציית ניהול זמן משפחתי חכמה - Hebrew-first RTL family management app.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- **יומן משפחתי** - Calendar with event categories, child assignments, and ride coordination
+- **רשימת קניות** - Smart shopping list with Hebrew catalog and supermarket mode
+- **ניהול ילדים** - Children management with color coding
+- **תמיכה במשפחות מרובות** - Multi-family support with invitations and roles
+- **מצב כהה/בהיר** - Light/dark mode with system preference detection
+- **RTL תמיכה מלאה** - Full right-to-left Hebrew support
 
+## Tech Stack
+
+- **Frontend**: Angular 21 (standalone components, signals)
+- **UI Library**: Angular Material
+- **Backend**: Firebase (Auth, Firestore)
+- **Styling**: SCSS with CSS custom properties
+- **Deployment**: GitHub Pages
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- npm 10+
+- Firebase project
+
+### Installation
+
+1. Clone the repository:
 ```bash
-ng serve
+git clone https://github.com/YOUR_USERNAME/FamilyOps.git
+cd FamilyOps
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+2. Install dependencies:
 ```bash
-ng generate component component-name
+npm install --legacy-peer-deps
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+3. Configure Firebase:
 
-```bash
-ng generate --help
+   Create a Firebase project at [Firebase Console](https://console.firebase.google.com/).
+
+   Update `src/environments/environment.ts` and `src/environments/environment.prod.ts` with your Firebase config:
+
+```typescript
+export const environment = {
+  production: false,
+  firebase: {
+    apiKey: 'YOUR_API_KEY',
+    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
+    projectId: 'YOUR_PROJECT_ID',
+    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
+    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
+    appId: 'YOUR_APP_ID',
+  },
+  // ...
+};
 ```
 
-## Building
-
-To build the project run:
-
+4. Start the development server:
 ```bash
-ng build
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The app will be available at `http://localhost:4201`
 
-## Running unit tests
+### Firebase Setup
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+1. Enable **Email/Password** authentication in Firebase Console
+2. Create a Firestore database
+3. Deploy security rules from `firestore.rules`
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Development
 
 ```bash
-ng e2e
+# Start dev server on port 4201
+npm start
+
+# Build for production
+npm run build:prod
+
+# Deploy to GitHub Pages
+npm run deploy
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Project Structure
 
-## Additional Resources
+```
+src/
+├── app/
+│   ├── core/           # Singleton services, guards
+│   │   ├── auth/       # Authentication
+│   │   ├── firebase/   # Firebase config
+│   │   ├── family/     # Family management
+│   │   └── theme/      # Theme service
+│   ├── shared/         # Reusable components
+│   ├── features/       # Feature modules
+│   │   ├── auth/       # Login, register
+│   │   ├── calendar/   # Calendar views
+│   │   ├── shopping/   # Shopping list
+│   │   ├── family/     # Family management
+│   │   └── settings/   # User settings
+│   └── layouts/        # Layout components
+├── assets/
+│   └── data/           # Static data (catalog, holidays)
+├── environments/       # Environment configs
+└── styles/             # Global SCSS
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Deployment
+
+### GitHub Pages (Automatic)
+
+Push to `main` or `master` branch - GitHub Actions will automatically build and deploy.
+
+### Manual Deployment
+
+```bash
+npm run deploy
+```
+
+## Firestore Security Rules
+
+The app requires specific security rules. See the plan document for the complete rules.
+
+Key points:
+- Users can only access families they're members of
+- Only owners/admins can manage family settings
+- Members can create/edit events and shopping lists
+- Viewers are read-only
+
+## License
+
+MIT
+
+---
+
+Built with ❤️ for Israeli families

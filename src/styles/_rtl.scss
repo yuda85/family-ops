@@ -1,0 +1,387 @@
+// ============================================
+// FamilyOps Design System - RTL Support
+// Hebrew-first Right-to-Left Layout
+// ============================================
+
+@use 'variables' as *;
+
+// ---------------------------------------------
+// Base RTL Configuration
+// ---------------------------------------------
+
+html {
+  direction: rtl;
+}
+
+body {
+  text-align: right;
+}
+
+// ---------------------------------------------
+// Logical Properties for RTL
+// Using CSS logical properties for automatic RTL support
+// ---------------------------------------------
+
+// Margin logical properties
+.ms-auto { margin-inline-start: auto; }
+.me-auto { margin-inline-end: auto; }
+.ms-1 { margin-inline-start: $spacing-1; }
+.me-1 { margin-inline-end: $spacing-1; }
+.ms-2 { margin-inline-start: $spacing-2; }
+.me-2 { margin-inline-end: $spacing-2; }
+.ms-3 { margin-inline-start: $spacing-3; }
+.me-3 { margin-inline-end: $spacing-3; }
+.ms-4 { margin-inline-start: $spacing-4; }
+.me-4 { margin-inline-end: $spacing-4; }
+.ms-6 { margin-inline-start: $spacing-6; }
+.me-6 { margin-inline-end: $spacing-6; }
+
+// Padding logical properties
+.ps-1 { padding-inline-start: $spacing-1; }
+.pe-1 { padding-inline-end: $spacing-1; }
+.ps-2 { padding-inline-start: $spacing-2; }
+.pe-2 { padding-inline-end: $spacing-2; }
+.ps-3 { padding-inline-start: $spacing-3; }
+.pe-3 { padding-inline-end: $spacing-3; }
+.ps-4 { padding-inline-start: $spacing-4; }
+.pe-4 { padding-inline-end: $spacing-4; }
+.ps-6 { padding-inline-start: $spacing-6; }
+.pe-6 { padding-inline-end: $spacing-6; }
+
+// Border logical properties
+.border-s { border-inline-start: 1px solid var(--border-default); }
+.border-e { border-inline-end: 1px solid var(--border-default); }
+
+// ---------------------------------------------
+// Text Alignment
+// ---------------------------------------------
+
+.text-start { text-align: start; } // Right in RTL
+.text-end { text-align: end; }     // Left in RTL
+.text-center { text-align: center; }
+
+// Force LTR for specific content (numbers, code, URLs)
+.ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+.ltr-inline {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+// Numbers should remain LTR
+.number,
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+input[type="url"] {
+  direction: ltr;
+  text-align: right; // Align to the right but read LTR
+}
+
+// Phone numbers
+.phone {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+// ---------------------------------------------
+// Icon Mirroring
+// Some icons should flip in RTL (directional icons)
+// ---------------------------------------------
+
+.icon-flip-rtl {
+  transform: scaleX(-1);
+}
+
+// Icons that should flip
+.icon-arrow-forward,
+.icon-arrow-back,
+.icon-chevron-right,
+.icon-chevron-left,
+.icon-reply,
+.icon-share,
+.icon-exit,
+.icon-login,
+.icon-logout {
+  @extend .icon-flip-rtl;
+}
+
+// Icons that should NOT flip (universal meaning)
+// .icon-check, .icon-close, .icon-add, .icon-remove, etc.
+
+// Material Icons RTL handling
+.mat-icon {
+  &[data-flip-rtl="true"] {
+    transform: scaleX(-1);
+  }
+}
+
+// ---------------------------------------------
+// Flexbox RTL Helpers
+// ---------------------------------------------
+
+.flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+// In RTL, default flex-direction: row already goes right-to-left
+// So we need opposite classes for explicit LTR ordering
+
+.flex-ltr {
+  direction: ltr;
+}
+
+// Gap utilities for RTL
+.gap-1 { gap: $spacing-1; }
+.gap-2 { gap: $spacing-2; }
+.gap-3 { gap: $spacing-3; }
+.gap-4 { gap: $spacing-4; }
+.gap-6 { gap: $spacing-6; }
+
+// ---------------------------------------------
+// Position Utilities (RTL-aware)
+// ---------------------------------------------
+
+.start-0 { inset-inline-start: 0; }
+.end-0 { inset-inline-end: 0; }
+.start-4 { inset-inline-start: $spacing-4; }
+.end-4 { inset-inline-end: $spacing-4; }
+
+// Absolute positioning helpers
+.fixed-start {
+  position: fixed;
+  inset-inline-start: 0;
+}
+
+.fixed-end {
+  position: fixed;
+  inset-inline-end: 0;
+}
+
+// ---------------------------------------------
+// List & Table RTL
+// ---------------------------------------------
+
+ul, ol {
+  padding-inline-start: $spacing-6;
+  padding-inline-end: 0;
+}
+
+th, td {
+  text-align: start;
+}
+
+// ---------------------------------------------
+// Form Elements RTL
+// ---------------------------------------------
+
+input,
+textarea,
+select {
+  text-align: inherit;
+}
+
+// Placeholder alignment
+input::placeholder,
+textarea::placeholder {
+  text-align: inherit;
+}
+
+// Labels
+label {
+  display: block;
+  text-align: start;
+}
+
+// Checkboxes and radios - label on the left (start in RTL)
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    order: 1; // Put input after label in visual order (right side in RTL)
+  }
+}
+
+// ---------------------------------------------
+// Calendar RTL Overrides
+// ---------------------------------------------
+
+.calendar {
+  direction: rtl;
+
+  // Week starts from right (Saturday/Sunday depending on locale)
+  .calendar-week {
+    display: flex;
+    flex-direction: row;
+  }
+
+  // Day numbers
+  .calendar-day-number {
+    // Hebrew uses western numerals, no special handling needed
+  }
+}
+
+// ---------------------------------------------
+// Dialog / Modal RTL
+// ---------------------------------------------
+
+.dialog,
+.modal {
+  // Close button in top-left (which is start in RTL)
+  .close-button {
+    position: absolute;
+    inset-inline-start: $spacing-4;
+    top: $spacing-4;
+  }
+
+  // Actions on the left (which is end in RTL reading order)
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-start; // Aligns to left in RTL
+    gap: $spacing-3;
+  }
+}
+
+// ---------------------------------------------
+// Navigation RTL
+// ---------------------------------------------
+
+.nav-item {
+  .nav-icon {
+    margin-inline-end: $spacing-3;
+    margin-inline-start: 0;
+  }
+}
+
+// Breadcrumbs separator
+.breadcrumb {
+  display: flex;
+  align-items: center;
+
+  .breadcrumb-separator {
+    margin-inline: $spacing-2;
+    // Chevron should point left (back direction in RTL)
+    transform: scaleX(-1);
+  }
+}
+
+// ---------------------------------------------
+// Scrollbar RTL
+// In RTL, scrollbar should be on the left
+// ---------------------------------------------
+
+.scroll-container {
+  direction: rtl;
+  overflow-y: auto;
+
+  // Content inside can be LTR if needed
+  &.content-ltr > * {
+    direction: ltr;
+  }
+}
+
+// ---------------------------------------------
+// Animation Direction RTL
+// Slide animations should respect RTL
+// ---------------------------------------------
+
+@keyframes slideInStart {
+  from {
+    opacity: 0;
+    transform: translateX(20px); // Comes from left in RTL
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInEnd {
+  from {
+    opacity: 0;
+    transform: translateX(-20px); // Comes from right in RTL
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-start {
+  animation: slideInStart 300ms ease-out;
+}
+
+.animate-slide-in-end {
+  animation: slideInEnd 300ms ease-out;
+}
+
+// ---------------------------------------------
+// Angular Material RTL Fixes
+// ---------------------------------------------
+
+// Mat-form-field
+.mat-mdc-form-field {
+  direction: rtl;
+  text-align: right;
+}
+
+// Mat-select
+.mat-mdc-select {
+  text-align: right;
+}
+
+// Mat-menu
+.mat-mdc-menu-panel {
+  direction: rtl;
+}
+
+// Mat-dialog
+.mat-mdc-dialog-container {
+  direction: rtl;
+}
+
+// Mat-snackbar
+.mat-mdc-snack-bar-container {
+  direction: rtl;
+}
+
+// Mat-tooltip
+.mat-mdc-tooltip {
+  direction: rtl;
+}
+
+// Mat-datepicker
+.mat-datepicker-content {
+  direction: rtl;
+}
+
+// Mat-table
+.mat-mdc-table {
+  direction: rtl;
+}
+
+// Mat-tabs
+.mat-mdc-tab-group {
+  direction: rtl;
+}
+
+// Mat-stepper
+.mat-stepper-horizontal,
+.mat-stepper-vertical {
+  direction: rtl;
+}
+
+// Mat-sidenav - should open from right
+.mat-sidenav-container {
+  direction: rtl;
+
+  .mat-sidenav {
+    // Position attribute handles this, but ensure proper direction
+  }
+}
