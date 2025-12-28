@@ -1,1 +1,0 @@
-import"./chunk-ATWMZ64T.js";var o=[{path:"",loadComponent:()=>import("./chunk-SJB2NLKG.js").then(t=>t.DashboardViewComponent),title:"\u05D3\u05E9\u05D1\u05D5\u05E8\u05D3 - FamilyOps"}];export{o as default};
