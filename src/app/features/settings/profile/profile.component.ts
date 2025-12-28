@@ -131,7 +131,7 @@ import { FamilyService } from '../../../core/family/family.service';
         <h2>אודות</h2>
         <div class="settings-card">
           <div class="about-info">
-            <span class="app-logo">👨‍👩‍👧‍👦</span>
+            <img src="favicon.png" alt="FamilyOps" class="app-logo" />
             <h3>FamilyOps</h3>
             <p>גרסה 1.0.0</p>
           </div>
@@ -318,9 +318,11 @@ import { FamilyService } from '../../../core/family/family.service';
       text-align: center;
 
       .app-logo {
-        font-size: 3rem;
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
         display: block;
-        margin-bottom: 0.75rem;
+        margin: 0 auto 0.75rem;
       }
 
       h3 {

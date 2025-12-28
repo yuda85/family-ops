@@ -12,17 +12,17 @@ export const familyGuard: CanActivateFn = async (route, state) => {
   const familyService = inject(FamilyService);
   const router = inject(Router);
 
-  // Wait for auth to be ready
-  if (authService.isLoading()) {
+  // Wait for auth to fully initialize (including user document)
+  if (!authService.isInitialized()) {
     await new Promise<void>((resolve) => {
-      const checkLoading = () => {
-        if (!authService.isLoading()) {
+      const checkInitialized = () => {
+        if (authService.isInitialized()) {
           resolve();
         } else {
-          setTimeout(checkLoading, 50);
+          setTimeout(checkInitialized, 50);
         }
       };
-      checkLoading();
+      checkInitialized();
     });
   }
 

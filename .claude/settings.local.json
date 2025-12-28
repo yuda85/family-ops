@@ -5,7 +5,9 @@
       "Bash(npm run build:*)",
       "Bash(npm run build:prod:*)",
       "Skill(frontend-design)",
-      "Skill(frontend-design:*)"
+      "Skill(frontend-design:*)",
+      "Bash(ls:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

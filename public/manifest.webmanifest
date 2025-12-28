@@ -2,7 +2,7 @@
   "name": "FamilyOps - ניהול זמן משפחתי",
   "short_name": "FamilyOps",
   "description": "אפליקציית ניהול זמן משפחתי חכמה - יומן, קניות, הסעות ועוד",
-  "start_url": "/",
+  "start_url": "/family-ops/",
   "display": "standalone",
   "background_color": "#f5f3ef",
   "theme_color": "#c4704f",
@@ -11,10 +11,10 @@
   "lang": "he",
   "icons": [
     {
-      "src": "assets/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

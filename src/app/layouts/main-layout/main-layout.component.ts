@@ -154,6 +154,7 @@ export class MainLayoutComponent {
   sidenavMode = signal<'over' | 'side'>('over');
 
   navItems: NavItem[] = [
+    { path: '/app/dashboard', icon: 'dashboard', label: 'דשבורד' },
     { path: '/app/calendar', icon: 'calendar_month', label: 'יומן משפחתי' },
     { path: '/app/shopping', icon: 'shopping_cart', label: 'רשימת קניות' },
     { path: '/app/topics', icon: 'topic', label: 'נושאים חשובים' },

@@ -93,6 +93,41 @@ service cloud.firestore {
         allow read: if isFamilyMember(familyId);
         allow write: if canWrite(familyId);
       }
+
+      // Topics subcollection
+      match /topics/{topicId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+
+        // Tasks subcollection under topics
+        match /tasks/{taskId} {
+          allow read: if isFamilyMember(familyId);
+          allow write: if canWrite(familyId);
+        }
+
+        // Comments subcollection under topics
+        match /comments/{commentId} {
+          allow read: if isFamilyMember(familyId);
+          allow write: if canWrite(familyId);
+        }
+
+        // Attachments subcollection under topics
+        match /attachments/{attachmentId} {
+          allow read: if isFamilyMember(familyId);
+          allow write: if canWrite(familyId);
+        }
+
+        // Activity subcollection under topics
+        match /activity/{activityId} {
+          allow read: if isFamilyMember(familyId);
+          allow create: if canWrite(familyId);
+        }
+      }
+    }
+
+    // Collection group query for tasks (allows querying tasks across all topics)
+    match /{path=**}/tasks/{taskId} {
+      allow read: if isAuthenticated();
     }
 
     // Global shopping catalog (read-only)

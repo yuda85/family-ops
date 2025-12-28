@@ -12,8 +12,8 @@
   <meta name="apple-mobile-web-app-title" content="FamilyOps">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="apple-touch-icon" href="assets/icons/icon.svg">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="favicon.png">
 
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -24,6 +24,19 @@
 
   <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- GitHub Pages SPA redirect handler -->
+  <script>
+    (function(){
+      var redirect = sessionStorage.redirect;
+      delete sessionStorage.redirect;
+      if (redirect && redirect !== location.pathname.slice(1)) {
+        history.replaceState(null, null,
+          '/' + redirect.replace(/^family-ops\//, '')
+        );
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>

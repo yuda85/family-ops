@@ -10,12 +10,12 @@ export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Wait for auth to initialize
-  if (authService.isLoading()) {
-    // Return a promise that resolves when loading is complete
+  // Wait for auth to fully initialize (including user document)
+  if (!authService.isInitialized()) {
+    // Return a promise that resolves when initialization is complete
     return new Promise<boolean>((resolve) => {
       const checkAuth = () => {
-        if (!authService.isLoading()) {
+        if (authService.isInitialized()) {
           if (authService.isAuthenticated()) {
             resolve(true);
           } else {
@@ -50,11 +50,11 @@ export const guestGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Wait for auth to initialize
-  if (authService.isLoading()) {
+  // Wait for auth to fully initialize (including user document)
+  if (!authService.isInitialized()) {
     return new Promise<boolean>((resolve) => {
       const checkAuth = () => {
-        if (!authService.isLoading()) {
+        if (authService.isInitialized()) {
           if (!authService.isAuthenticated()) {
             resolve(true);
           } else {
@@ -84,10 +84,10 @@ export const authMatch: CanMatchFn = (route, segments) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isLoading()) {
+  if (!authService.isInitialized()) {
     return new Promise<boolean>((resolve) => {
       const checkAuth = () => {
-        if (!authService.isLoading()) {
+        if (authService.isInitialized()) {
           resolve(authService.isAuthenticated());
         } else {
           setTimeout(checkAuth, 50);

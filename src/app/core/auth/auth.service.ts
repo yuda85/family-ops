@@ -27,12 +27,14 @@ export class AuthService {
   private _firebaseUser = signal<User | null>(null);
   private _userDocument = signal<UserDocument | null>(null);
   private _isLoading = signal(true);
+  private _isInitialized = signal(false); // True when auth AND user document are fully loaded
   private _error = signal<string | null>(null);
 
   // Public computed signals
   readonly firebaseUser = this._firebaseUser.asReadonly();
   readonly user = this._userDocument.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
+  readonly isInitialized = this._isInitialized.asReadonly(); // Use this in guards!
   readonly error = this._error.asReadonly();
 
   readonly isAuthenticated = computed(() => !!this._firebaseUser());
@@ -55,6 +57,7 @@ export class AuthService {
     // Listen to auth state changes
     onAuthStateChanged(this.auth, async (firebaseUser) => {
       this._firebaseUser.set(firebaseUser);
+      this._isInitialized.set(false); // Reset while loading
 
       if (firebaseUser) {
         await this.loadUserDocument(firebaseUser.uid);
@@ -63,6 +66,7 @@ export class AuthService {
       }
 
       this._isLoading.set(false);
+      this._isInitialized.set(true); // Now fully initialized (auth + user document)
     });
   }
 

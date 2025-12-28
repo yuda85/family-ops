@@ -37,7 +37,7 @@ import { FamilyService } from '../../../core/family/family.service';
           }
 
           <a routerLink="/app" class="logo">
-            <span class="logo-icon">👨‍👩‍👧‍👦</span>
+            <img src="favicon.png" alt="FamilyOps" class="logo-icon" />
             <span class="logo-text">FamilyOps</span>
           </a>
 
@@ -138,7 +138,9 @@ import { FamilyService } from '../../../core/family/family.service';
     }
 
     .logo-icon {
-      font-size: 1.5rem;
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
     }
 
     .logo-text {

@@ -48,8 +48,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'calendar',
+        redirectTo: 'dashboard',
         pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadChildren: () => import('./features/dashboard/dashboard.routes'),
       },
       {
         path: 'calendar',
