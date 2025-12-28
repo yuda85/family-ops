@@ -328,8 +328,6 @@ export class DashboardService implements OnDestroy {
       waited += checkInterval;
     }
 
-    console.log('[Dashboard] Topics loaded after', waited, 'ms, count:', this.topicsService.topics().length);
-
     // Now load tasks
     await this.loadMyTasks();
   }
@@ -342,29 +340,19 @@ export class DashboardService implements OnDestroy {
     const familyId = this.familyService.familyId();
     const userId = this.authService.userId();
 
-    console.log('[Dashboard] loadMyTasks called');
-    console.log('[Dashboard] familyId:', familyId);
-    console.log('[Dashboard] userId:', userId);
-
     if (!familyId || !userId) {
-      console.log('[Dashboard] Missing familyId or userId, returning empty');
       this._myTasks.set([]);
       return;
     }
 
     try {
       const topics = this.topicsService.topics();
-      console.log('[Dashboard] Topics count:', topics.length);
-      console.log('[Dashboard] Topics:', topics.map(t => ({ id: t.id, title: t.title })));
-
       const allTasks: TopicTask[] = [];
 
       // Load tasks from each topic's tasks subcollection
       const taskPromises = topics.map(async (topic) => {
         try {
           const tasksPath = `families/${familyId}/topics/${topic.id}/tasks`;
-          console.log('[Dashboard] Querying tasks at:', tasksPath);
-
           const tasksRef = collection(this.db, tasksPath);
           const tasksQuery = query(
             tasksRef,
@@ -372,11 +360,8 @@ export class DashboardService implements OnDestroy {
           );
           const snapshot = await getDocs(tasksQuery);
 
-          console.log(`[Dashboard] Topic ${topic.id} - Found ${snapshot.docs.length} tasks assigned to user`);
-
           for (const doc of snapshot.docs) {
             const data = doc.data();
-            console.log('[Dashboard] Task found:', { id: doc.id, title: data['title'], assignedTo: data['assignedTo'], status: data['status'] });
             allTasks.push({
               id: doc.id,
               topicId: topic.id,
@@ -396,16 +381,14 @@ export class DashboardService implements OnDestroy {
             } as TopicTask);
           }
         } catch (err) {
-          console.warn(`[Dashboard] Failed to load tasks for topic ${topic.id}:`, err);
+          console.warn(`Failed to load tasks for topic ${topic.id}:`, err);
         }
       });
 
       await Promise.all(taskPromises);
-      console.log('[Dashboard] Total tasks loaded:', allTasks.length);
-      console.log('[Dashboard] All tasks:', allTasks);
       this._myTasks.set(allTasks);
     } catch (error) {
-      console.error('[Dashboard] Error loading my tasks:', error);
+      console.error('Error loading my tasks:', error);
       this._myTasks.set([]);
     }
   }

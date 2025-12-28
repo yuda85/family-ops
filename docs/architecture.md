@@ -19,11 +19,13 @@ FamilyOps is built with Angular 21+ using modern patterns:
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
 │  │   Layouts   │  │   Features  │  │   Shared    │     │
 │  │             │  │             │  │             │     │
-│  │ MainLayout  │  │ Auth        │  │ Components  │     │
-│  │             │  │ Family      │  │ Pipes       │     │
-│  └─────────────┘  │ Calendar    │  │ Directives  │     │
-│                   │ Shopping    │  │             │     │
-│                   │ Settings    │  └─────────────┘     │
+│  │ MainLayout  │  │ Dashboard   │  │ Components  │     │
+│  │             │  │ Auth        │  │ Pipes       │     │
+│  └─────────────┘  │ Family      │  │ Directives  │     │
+│                   │ Calendar    │  │             │     │
+│                   │ Shopping    │  └─────────────┘     │
+│                   │ Topics      │                       │
+│                   │ Settings    │                       │
 │                   └─────────────┘                       │
 ├─────────────────────────────────────────────────────────┤
 │                      Core Services                       │
@@ -123,9 +125,11 @@ Each feature is lazily loaded for optimal bundle size.
   loadComponent: () => import('./layouts/main-layout/...'),
   canActivate: [authGuard, familyGuard],
   children: [
-    { path: '', redirectTo: 'calendar', pathMatch: 'full' },
+    { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    { path: 'dashboard', loadChildren: () => import('./features/dashboard/...') },
     { path: 'calendar', loadChildren: () => import('./features/calendar/...') },
     { path: 'shopping', loadChildren: () => import('./features/shopping/...') },
+    { path: 'topics', loadChildren: () => import('./features/topics/...') },
     { path: 'family', loadChildren: () => import('./features/family/...') },
     { path: 'settings', loadChildren: () => import('./features/settings/...') }
   ]
@@ -200,7 +204,7 @@ this._isLoading.set(true);
    - Members subcollection
    - Children subcollection
 4. AuthService.setActiveFamily() updates user doc
-5. Router navigates to /app/calendar
+5. Router navigates to /app/dashboard
 ```
 
 ## Styling Architecture

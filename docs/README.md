@@ -15,10 +15,12 @@ FamilyOps is designed to help Israeli families manage their daily lives with fea
 - [Getting Started](./getting-started.md) - Setup and installation
 - [Architecture](./architecture.md) - Technical overview
 - [Features](#features)
+  - [Dashboard](./features/dashboard.md) - Home page with unified overview
   - [Authentication](./features/authentication.md)
   - [Family Management](./features/family-management.md)
   - [Calendar](./features/calendar.md)
   - [Shopping](./features/shopping.md)
+  - [Topics](./features/topics.md) - Family planning and task management
   - [Settings](./features/settings.md)
 - [API Reference](./api-reference.md) - Services and models
 - [Firestore Schema](./firestore-schema.md) - Database structure
@@ -36,6 +38,16 @@ FamilyOps is designed to help Israeli families manage their daily lives with fea
 
 ## Features
 
+### Dashboard
+Unified home page aggregating data from all features:
+- Personalized greeting with time-based Hebrew salutations
+- Quick stats (events, rides, topics)
+- Children overview with event counts
+- Upcoming events with child avatars
+- User's assigned tasks
+- Shopping progress
+- Important topics with deadlines
+
 ### Authentication
 Google OAuth sign-in with automatic user profile creation. Supports session persistence across browser tabs.
 
@@ -50,12 +62,21 @@ Google OAuth sign-in with automatic user profile creation. Supports session pers
 - Event categories with color coding
 - Ride coordination for children's activities
 - Multi-child event support
+- Recurring events
 
 ### Shopping
 - Categorized shopping lists (12 categories)
 - Progress tracking with completion percentage
 - Supermarket mode for in-store use
 - Recurring staples management
+
+### Topics
+Collaborative planning for important family matters:
+- Status-based organization (Planning, Active, Completed, Archived)
+- Assignable tasks with due dates and subtasks
+- Content sections (text, checklists, links)
+- Threaded discussions with reactions
+- Calendar event integration
 
 ### Settings
 - Theme preferences (Light/Dark/System)
@@ -80,9 +101,11 @@ src/
 │   │
 │   ├── features/       # Feature modules (lazy-loaded)
 │   │   ├── auth/       # Login flow
+│   │   ├── dashboard/  # Home page with unified overview
 │   │   ├── family/     # Family, members, children management
 │   │   ├── calendar/   # Calendar views and events
 │   │   ├── shopping/   # Shopping lists
+│   │   ├── topics/     # Family planning and tasks
 │   │   └── settings/   # User preferences
 │   │
 │   └── layouts/        # Page layouts
