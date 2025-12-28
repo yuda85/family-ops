@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash([ -d dist ])",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

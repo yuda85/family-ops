@@ -73,17 +73,22 @@ interface NavItem {
     .app-layout {
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
 
     .sidenav-container {
       flex: 1;
+      overflow: hidden;
     }
 
     .sidenav {
       width: 280px;
       background: var(--sidebar-bg);
       border-inline-start: 1px solid var(--border-subtle);
+      border-radius: 0 !important;
+      overflow-x: hidden;
+      overflow-y: auto;
 
       @media (max-width: 767px) {
         width: 260px;
@@ -92,17 +97,21 @@ interface NavItem {
 
     .sidenav-nav {
       padding-top: 1rem;
+      overflow-x: hidden;
     }
 
     .main-content {
       background: var(--surface-app);
-      min-height: 100%;
+      height: 100%;
+      overflow-y: auto;
     }
 
     .page-container {
+      min-height: 100%;
       padding: 1.5rem;
       padding-bottom: calc(1.5rem + 64px); // Account for bottom nav on mobile
       max-width: 1200px;
+      width: 100%;
       margin: 0 auto;
 
       @media (min-width: 768px) {
@@ -119,9 +128,14 @@ interface NavItem {
 
     // Navigation item styles
     mat-nav-list {
+      overflow: hidden;
+
       a {
         border-radius: 0.75rem;
         margin: 0.25rem 0.75rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         &.active {
           background: var(--color-primary-alpha);

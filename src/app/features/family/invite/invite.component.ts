@@ -124,7 +124,8 @@ export class InviteComponent implements OnInit {
       });
 
       // Generate the invite link (include hash for hash-based routing)
-      const baseUrl = window.location.origin;
+      // Use baseURI to include the base path (e.g., /family-ops/ on GitHub Pages)
+      const baseUrl = document.baseURI.replace(/\/$/, '');
       const inviteLink = `${baseUrl}/#/accept-invite/${inviteId}`;
       this.generatedInviteLink.set(inviteLink);
 
@@ -151,7 +152,7 @@ export class InviteComponent implements OnInit {
   }
 
   copyInviteLink(inviteId: string): void {
-    const baseUrl = window.location.origin;
+    const baseUrl = document.baseURI.replace(/\/$/, '');
     const inviteLink = `${baseUrl}/#/accept-invite/${inviteId}`;
     navigator.clipboard.writeText(inviteLink).then(() => {
       // Could add a snackbar notification here

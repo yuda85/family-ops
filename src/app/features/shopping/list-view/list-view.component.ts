@@ -276,6 +276,7 @@ interface CategoryGroup {
       .item-name {
         flex: 1;
         font-size: 0.9375rem;
+        color: var(--text-primary);
       }
 
       .item-quantity {
