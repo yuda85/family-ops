@@ -13,8 +13,16 @@ import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../../core/auth/auth.service';
 import { FamilyService } from '../../../core/family/family.service';
 import { ThemeService } from '../../../core/theme/theme.service';
+import { FirestoreService } from '../../../core/firebase/firestore.service';
+import { FamilyDocument } from '../../../core/family/family.models';
 
 type ViewMode = 'select' | 'create' | 'join';
+
+interface FamilyInfo {
+  familyId: string;
+  name: string;
+  role: string;
+}
 
 @Component({
   selector: 'app-family-select',
@@ -58,24 +66,29 @@ type ViewMode = 'select' | 'create' | 'join';
           @switch (viewMode()) {
             <!-- Family Selection View -->
             @case ('select') {
-              @if (hasFamilies()) {
+              @if (families().length > 0) {
                 <div class="families-list">
-                  @for (family of getFamilies(); track family.familyId) {
+                  @for (family of families(); track family.familyId) {
                     <button
                       class="family-item"
                       (click)="selectFamily(family.familyId)"
                       [class.active]="authService.activeFamilyId() === family.familyId"
                     >
                       <div class="family-avatar">
-                        {{ family.familyId.substring(0, 2).toUpperCase() }}
+                        {{ family.name.substring(0, 2) }}
                       </div>
                       <div class="family-info">
-                        <span class="family-name">{{ family.familyId }}</span>
+                        <span class="family-name">{{ family.name }}</span>
                         <span class="family-role">{{ getRoleLabel(family.role) }}</span>
                       </div>
                       <mat-icon class="chevron">chevron_left</mat-icon>
                     </button>
                   }
+                </div>
+              } @else if (isLoadingFamilies()) {
+                <div class="loading-state">
+                  <mat-spinner diameter="32"></mat-spinner>
+                  <p>טוען משפחות...</p>
                 </div>
               } @else {
                 <div class="empty-state">
@@ -319,7 +332,8 @@ type ViewMode = 'select' | 'create' | 'join';
       color: var(--text-tertiary);
     }
 
-    .empty-state {
+    .empty-state,
+    .loading-state {
       text-align: center;
       padding: 2rem 1rem;
       color: var(--text-secondary);
@@ -330,6 +344,10 @@ type ViewMode = 'select' | 'create' | 'join';
         height: 48px;
         color: var(--text-tertiary);
         margin-bottom: 1rem;
+      }
+
+      mat-spinner {
+        margin: 0 auto 1rem;
       }
 
       p {
@@ -420,6 +438,7 @@ export class FamilySelectComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private firestoreService = inject(FirestoreService);
 
   authService = inject(AuthService);
   familyService = inject(FamilyService);
@@ -427,7 +446,9 @@ export class FamilySelectComponent implements OnInit {
 
   viewMode = signal<ViewMode>('select');
   isLoading = signal(false);
+  isLoadingFamilies = signal(false);
   error = signal<string | null>(null);
+  families = signal<FamilyInfo[]>([]);
 
   createForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -444,21 +465,50 @@ export class FamilySelectComponent implements OnInit {
       this.joinForm.patchValue({ inviteCode });
       this.viewMode.set('join');
     }
+
+    // Load family names
+    this.loadFamilyNames();
   }
 
-  hasFamilies(): boolean {
+  private async loadFamilyNames(): Promise<void> {
     const user = this.authService.user();
-    return user ? Object.keys(user.familyMemberships).length > 0 : false;
-  }
+    if (!user || Object.keys(user.familyMemberships).length === 0) {
+      this.families.set([]);
+      return;
+    }
 
-  getFamilies(): Array<{ familyId: string; role: string }> {
-    const user = this.authService.user();
-    if (!user) return [];
+    this.isLoadingFamilies.set(true);
 
-    return Object.entries(user.familyMemberships).map(([familyId, role]) => ({
-      familyId,
-      role,
-    }));
+    try {
+      const familyEntries = Object.entries(user.familyMemberships);
+      const familyInfos: FamilyInfo[] = [];
+
+      for (const [familyId, role] of familyEntries) {
+        try {
+          const familyDoc = await this.firestoreService.getDocument<FamilyDocument>(
+            `families/${familyId}`
+          );
+          familyInfos.push({
+            familyId,
+            name: familyDoc?.name ?? familyId,
+            role,
+          });
+        } catch {
+          // Fallback to ID if family document can't be loaded
+          familyInfos.push({
+            familyId,
+            name: familyId,
+            role,
+          });
+        }
+      }
+
+      this.families.set(familyInfos);
+    } catch (err) {
+      console.error('Error loading family names:', err);
+    } finally {
+      this.isLoadingFamilies.set(false);
+    }
   }
 
   getRoleLabel(role: string): string {

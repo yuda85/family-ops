@@ -1,13 +1,18 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { familyGuard } from './core/family/family.guard';
 
 export const routes: Routes = [
-  // Default redirect
+  // Landing page (for non-authenticated users)
   {
     path: '',
-    redirectTo: 'app',
+    loadComponent: () =>
+      import('./features/landing/landing.component').then(
+        (m) => m.LandingComponent
+      ),
+    canActivate: [guestGuard],
     pathMatch: 'full',
+    title: 'FamilyOps - ניהול משפחתי חכם',
   },
 
   // Auth routes (public)
@@ -58,6 +63,10 @@ export const routes: Routes = [
       {
         path: 'calendar',
         loadChildren: () => import('./features/calendar/calendar.routes'),
+      },
+      {
+        path: 'transportation',
+        loadChildren: () => import('./features/transportation/transportation.routes'),
       },
       {
         path: 'shopping',

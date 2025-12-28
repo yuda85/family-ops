@@ -17,10 +17,12 @@ import {
   ChildDashboardView,
   EventDayGroup,
   ShoppingStatusSummary,
+  ShoppingCategorySummary,
   DashboardTask,
   DashboardTopic,
   DashboardStats,
 } from './dashboard.models';
+import { SHOPPING_CATEGORIES } from '../shopping/shopping.models';
 
 @Injectable({
   providedIn: 'root',
@@ -158,6 +160,23 @@ export class DashboardService implements OnDestroy {
    */
   readonly shoppingStatus = computed<ShoppingStatusSummary>(() => {
     const list = this.shoppingService.activeList();
+    const items = this.shoppingService.items();
+    const groupedItems = this.shoppingService.groupedItems();
+
+    // Build category summaries
+    const categories: ShoppingCategorySummary[] = groupedItems.map(group => ({
+      category: group.category,
+      meta: group.categoryMeta,
+      totalItems: group.items.length,
+      checkedItems: group.items.filter(i => i.checked).length,
+      isComplete: group.isComplete,
+    }));
+
+    // Get recent unchecked items (up to 5)
+    const recentItems = items
+      .filter(i => !i.checked)
+      .slice(0, 5);
+
     return {
       hasActiveList: !!list,
       listName: list?.name || null,
@@ -167,6 +186,9 @@ export class DashboardService implements OnDestroy {
       isComplete: this.shoppingService.isListComplete(),
       activeShoppers: list?.activeShoppers || [],
       status: list?.status || null,
+      estimatedTotal: this.shoppingService.estimatedTotal(),
+      categories,
+      recentItems,
     };
   });
 

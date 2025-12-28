@@ -156,6 +156,7 @@ export class MainLayoutComponent {
   navItems: NavItem[] = [
     { path: '/app/dashboard', icon: 'dashboard', label: 'דשבורד' },
     { path: '/app/calendar', icon: 'calendar_month', label: 'יומן משפחתי' },
+    { path: '/app/transportation', icon: 'directions_car', label: 'הסעות' },
     { path: '/app/shopping', icon: 'shopping_cart', label: 'רשימת קניות' },
     { path: '/app/topics', icon: 'topic', label: 'נושאים חשובים' },
     { path: '/app/family/children', icon: 'child_care', label: 'הילדים' },

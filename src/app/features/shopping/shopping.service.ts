@@ -163,6 +163,9 @@ export class ShoppingService implements OnDestroy {
       if (lists.length > 0) {
         // Use the most recent active list
         this._activeList.set(lists[0]);
+        // Load items immediately (don't wait for subscription)
+        await this.loadItemsOnce(lists[0].id);
+        // Then subscribe for real-time updates
         this.subscribeToItems(lists[0].id);
       } else {
         // Create a new list
@@ -178,6 +181,24 @@ export class ShoppingService implements OnDestroy {
       this._error.set('שגיאה בטעינת רשימת הקניות');
     } finally {
       this._isLoading.set(false);
+    }
+  }
+
+  /**
+   * Load items once (synchronously) for initial data
+   */
+  private async loadItemsOnce(listId: string): Promise<void> {
+    const familyId = this.familyService.familyId();
+    if (!familyId) return;
+
+    try {
+      const items = await this.firestoreService.getCollection<ShoppingListItem>(
+        `families/${familyId}/shoppingLists/${listId}/items`,
+        orderBy('createdAt', 'desc')
+      );
+      this._items.set(items);
+    } catch (error) {
+      console.error('Error loading items:', error);
     }
   }
 

@@ -16,6 +16,8 @@ import {
   getCategoryMeta as getTopicCategoryMeta,
   getPriorityMeta,
 } from '../../topics/topics.models';
+import { getUnitMeta, ShoppingUnit } from '../../shopping/shopping.models';
+import { MyDutiesCardComponent } from '../my-duties-card/my-duties-card.component';
 
 @Component({
   selector: 'app-dashboard-view',
@@ -27,6 +29,7 @@ import {
     MatButtonModule,
     MatProgressBarModule,
     MatRippleModule,
+    MyDutiesCardComponent,
   ],
   template: `
     <div class="dashboard">
@@ -239,50 +242,8 @@ import {
             </div>
           </section>
 
-          <!-- Shopping Status Section -->
-          <section class="card shopping-card" routerLink="/app/shopping" matRipple>
-            <div class="card-header">
-              <div class="card-title">
-                <mat-icon>shopping_cart</mat-icon>
-                <h2>קניות</h2>
-              </div>
-              <mat-icon class="nav-arrow">chevron_left</mat-icon>
-            </div>
-
-            <div class="card-content">
-              @if (dashboardService.shoppingStatus(); as shopping) {
-                @if (!shopping.hasActiveList) {
-                  <div class="empty-state compact">
-                    <mat-icon>shopping_basket</mat-icon>
-                    <p>אין רשימה פעילה</p>
-                  </div>
-                } @else {
-                  <div class="shopping-progress">
-                    <div class="progress-header">
-                      <span class="progress-label">{{ shopping.listName }}</span>
-                      <span class="progress-count">
-                        {{ shopping.checkedItems }}/{{ shopping.totalItems }} פריטים
-                      </span>
-                    </div>
-                    <div class="progress-bar-container">
-                      <div
-                        class="progress-bar-fill"
-                        [style.width.%]="shopping.progress"
-                        [class.complete]="shopping.isComplete"
-                      ></div>
-                    </div>
-                    <div class="progress-percentage">{{ shopping.progress | number:'1.0-0' }}%</div>
-                  </div>
-                  @if (shopping.status === 'shopping') {
-                    <div class="shopping-active">
-                      <mat-icon>store</mat-icon>
-                      <span>קניות בתהליך</span>
-                    </div>
-                  }
-                }
-              }
-            </div>
-          </section>
+          <!-- My Duties Today Section -->
+          <app-my-duties-card></app-my-duties-card>
 
           <!-- Important Topics Section -->
           <section class="card topics-card">
@@ -361,6 +322,142 @@ import {
                 }
               }
             </div>
+          </section>
+
+          <!-- Shopping List Section (Full Width) -->
+          <section class="card shopping-card-new" routerLink="/app/shopping" matRipple>
+            @if (dashboardService.shoppingStatus(); as shopping) {
+              <div class="shopping-card-inner">
+                <!-- Header with gradient accent -->
+                <div class="shopping-header">
+                  <div class="shopping-title-row">
+                    <div class="shopping-icon-badge">
+                      <mat-icon>shopping_cart</mat-icon>
+                    </div>
+                    <div class="shopping-title-info">
+                      <h2>{{ shopping.listName || 'רשימת קניות' }}</h2>
+                      <span class="shopping-subtitle">
+                        @if (shopping.hasActiveList) {
+                          {{ shopping.checkedItems }} מתוך {{ shopping.totalItems }} פריטים
+                        } @else {
+                          אין רשימה פעילה
+                        }
+                      </span>
+                    </div>
+                  </div>
+                  <div class="shopping-nav-hint">
+                    <span>לרשימה המלאה</span>
+                    <mat-icon>chevron_left</mat-icon>
+                  </div>
+                </div>
+
+                @if (shopping.hasActiveList && shopping.totalItems > 0) {
+                  <!-- Main content area -->
+                  <div class="shopping-body">
+                    <!-- Progress Section -->
+                    <div class="shopping-progress-section">
+                      <div class="progress-ring-large">
+                        <svg viewBox="0 0 100 100">
+                          <circle class="progress-ring-bg" cx="50" cy="50" r="42" />
+                          <circle
+                            class="progress-ring-fill"
+                            cx="50" cy="50" r="42"
+                            [style.stroke-dasharray]="(shopping.progress * 2.64) + ', 264'"
+                            [class.complete]="shopping.isComplete"
+                          />
+                        </svg>
+                        <div class="progress-ring-content">
+                          <span class="progress-value">{{ shopping.progress | number:'1.0-0' }}</span>
+                          <span class="progress-symbol">%</span>
+                        </div>
+                      </div>
+                      <div class="progress-stats">
+                        <div class="stat-row">
+                          <span class="stat-label">סה"כ פריטים</span>
+                          <span class="stat-value">{{ shopping.totalItems }}</span>
+                        </div>
+                        <div class="stat-row checked">
+                          <span class="stat-label">נאספו</span>
+                          <span class="stat-value">{{ shopping.checkedItems }}</span>
+                        </div>
+                        <div class="stat-row remaining">
+                          <span class="stat-label">נותרו</span>
+                          <span class="stat-value">{{ shopping.totalItems - shopping.checkedItems }}</span>
+                        </div>
+                        @if (shopping.estimatedTotal > 0) {
+                          <div class="stat-row total">
+                            <span class="stat-label">הערכה</span>
+                            <span class="stat-value">₪{{ shopping.estimatedTotal | number:'1.0-0' }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Categories breakdown -->
+                    @if (shopping.categories.length > 0) {
+                      <div class="shopping-categories">
+                        <h3 class="section-label">לפי קטגוריה</h3>
+                        <div class="categories-grid">
+                          @for (cat of shopping.categories.slice(0, 6); track cat.category) {
+                            <div
+                              class="category-chip"
+                              [class.complete]="cat.isComplete"
+                              [style.--cat-color]="cat.meta.color"
+                            >
+                              <mat-icon [style.color]="cat.meta.color">{{ cat.meta.icon }}</mat-icon>
+                              <span class="cat-name">{{ cat.meta.labelHe }}</span>
+                              <span class="cat-count">{{ cat.checkedItems }}/{{ cat.totalItems }}</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Recent unchecked items -->
+                    @if (shopping.recentItems.length > 0) {
+                      <div class="shopping-items-preview">
+                        <h3 class="section-label">פריטים להשלמה</h3>
+                        <div class="items-list">
+                          @for (item of shopping.recentItems.slice(0, 4); track item.id) {
+                            <div class="item-row">
+                              <div class="item-check"></div>
+                              <span class="item-name">{{ item.name }}</span>
+                              <span class="item-qty">{{ item.quantity }} {{ getUnitShort(item.unit) }}</span>
+                            </div>
+                          }
+                          @if (shopping.totalItems - shopping.checkedItems > 4) {
+                            <div class="items-more">
+                              +{{ shopping.totalItems - shopping.checkedItems - 4 }} פריטים נוספים
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Active shopping indicator -->
+                  @if (shopping.status === 'shopping') {
+                    <div class="shopping-active-banner">
+                      <div class="pulse-dot"></div>
+                      <mat-icon>store</mat-icon>
+                      <span>קניות בתהליך</span>
+                    </div>
+                  }
+                } @else if (!shopping.hasActiveList) {
+                  <div class="shopping-empty">
+                    <mat-icon>add_shopping_cart</mat-icon>
+                    <p>התחל רשימת קניות חדשה</p>
+                    <span>לחץ כאן ליצירת רשימה</span>
+                  </div>
+                } @else {
+                  <div class="shopping-empty">
+                    <mat-icon>check_circle</mat-icon>
+                    <p>הרשימה ריקה</p>
+                    <span>הוסף פריטים לרשימה</span>
+                  </div>
+                }
+              </div>
+            }
           </section>
 
         </div>
@@ -964,90 +1061,418 @@ import {
       }
     }
 
-    /* ===== Shopping Card ===== */
-    .shopping-card {
+    /* ===== New Shopping Card (Full Width) ===== */
+    .shopping-card-new {
       cursor: pointer;
+      padding: 0;
+      overflow: hidden;
 
-      .card-header {
-        border-bottom: none;
-        padding-bottom: 0;
+      @media (min-width: 768px) {
+        grid-column: span 2;
       }
 
-      .card-content {
-        padding-top: 0.5rem;
+      &:hover {
+        .shopping-nav-hint {
+          transform: translateX(-4px);
+        }
       }
     }
 
-    .shopping-progress {
-      padding: 0.5rem 0;
+    .shopping-card-inner {
+      display: flex;
+      flex-direction: column;
     }
 
-    .progress-header {
+    .shopping-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 0.5rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--color-primary) 8%, transparent),
+        color-mix(in srgb, var(--color-secondary) 5%, transparent)
+      );
+      border-bottom: 1px solid var(--border-subtle);
     }
 
-    .progress-label {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--text-primary);
+    .shopping-title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
     }
 
-    .progress-count {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
+    .shopping-icon-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 0.875rem;
+      background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary)));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 30%, transparent);
 
-    .progress-bar-container {
-      height: 8px;
-      background: var(--surface-secondary);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, #10b981));
-      border-radius: 4px;
-      transition: width 0.4s ease;
-
-      &.complete {
-        background: linear-gradient(90deg, #10b981, #34d399);
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: white;
       }
     }
 
-    .progress-percentage {
-      font-size: 0.75rem;
-      color: var(--text-tertiary);
-      text-align: left;
-      margin-top: 0.375rem;
+    .shopping-title-info {
+      h2 {
+        font-family: 'Rubik', var(--font-family-display);
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-primary);
+      }
+
+      .shopping-subtitle {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        margin-top: 0.125rem;
+        display: block;
+      }
     }
 
-    .shopping-active {
+    .shopping-nav-hint {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      background: var(--color-success-alpha, rgba(16, 185, 129, 0.1));
-      border-radius: 0.5rem;
-      color: var(--color-success, #10b981);
+      gap: 0.25rem;
+      color: var(--color-primary);
       font-size: 0.8rem;
       font-weight: 500;
+      transition: transform 0.2s ease;
 
       mat-icon {
         font-size: 18px;
         width: 18px;
         height: 18px;
-        animation: pulse 2s infinite;
       }
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    .shopping-body {
+      display: grid;
+      gap: 1.25rem;
+      padding: 1.25rem;
+
+      @media (min-width: 768px) {
+        grid-template-columns: auto 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    /* Progress Ring Section */
+    .shopping-progress-section {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+
+      @media (min-width: 768px) {
+        flex-direction: column;
+        gap: 1rem;
+      }
+    }
+
+    .progress-ring-large {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+
+      svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+      }
+
+      .progress-ring-bg {
+        fill: none;
+        stroke: var(--surface-secondary);
+        stroke-width: 8;
+      }
+
+      .progress-ring-fill {
+        fill: none;
+        stroke: var(--color-primary);
+        stroke-width: 8;
+        stroke-linecap: round;
+        transition: stroke-dasharray 0.6s ease;
+
+        &.complete {
+          stroke: var(--color-success, #10b981);
+        }
+      }
+
+      .progress-ring-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+
+        .progress-value {
+          font-family: 'Rubik', var(--font-family-display);
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: var(--text-primary);
+          line-height: 1;
+        }
+
+        .progress-symbol {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--text-tertiary);
+          margin-right: 1px;
+        }
+      }
+    }
+
+    .progress-stats {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+
+      @media (min-width: 768px) {
+        width: 100%;
+      }
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface-secondary);
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+
+      .stat-label {
+        color: var(--text-secondary);
+      }
+
+      .stat-value {
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      &.checked .stat-value {
+        color: var(--color-success, #10b981);
+      }
+
+      &.remaining .stat-value {
+        color: var(--color-warning, #f59e0b);
+      }
+
+      &.total {
+        background: linear-gradient(90deg,
+          color-mix(in srgb, var(--color-primary) 10%, transparent),
+          color-mix(in srgb, var(--color-primary) 5%, transparent)
+        );
+
+        .stat-value {
+          color: var(--color-primary);
+          font-size: 0.9rem;
+        }
+      }
+    }
+
+    /* Categories Section */
+    .shopping-categories {
+      @media (min-width: 768px) {
+        border-right: 1px solid var(--border-subtle);
+        padding-right: 1.25rem;
+      }
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      margin: 0 0 0.75rem;
+    }
+
+    .categories-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .category-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.375rem 0.625rem;
+      background: var(--surface-secondary);
+      border-radius: 2rem;
+      border: 1px solid transparent;
+      transition: all 0.2s ease;
+      font-size: 0.75rem;
+
+      mat-icon {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+      }
+
+      .cat-name {
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .cat-count {
+        color: var(--text-tertiary);
+        font-size: 0.7rem;
+      }
+
+      &.complete {
+        background: color-mix(in srgb, var(--cat-color) 15%, transparent);
+        border-color: color-mix(in srgb, var(--cat-color) 30%, transparent);
+
+        .cat-name {
+          text-decoration: line-through;
+          opacity: 0.7;
+        }
+      }
+    }
+
+    /* Items Preview Section */
+    .shopping-items-preview {
+      @media (min-width: 768px) {
+        border-right: 1px solid var(--border-subtle);
+        padding-right: 1.25rem;
+      }
+    }
+
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--surface-secondary);
+      border-radius: 0.5rem;
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: var(--surface-hover);
+      }
+    }
+
+    .item-check {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-default);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .item-name {
+      flex: 1;
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-qty {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      flex-shrink: 0;
+    }
+
+    .items-more {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      text-align: center;
+      padding: 0.375rem;
+    }
+
+    /* Active Shopping Banner */
+    .shopping-active-banner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      padding: 0.75rem;
+      background: linear-gradient(90deg,
+        color-mix(in srgb, var(--color-success) 15%, transparent),
+        color-mix(in srgb, var(--color-success) 10%, transparent)
+      );
+      color: var(--color-success, #10b981);
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-top: 1px solid color-mix(in srgb, var(--color-success) 20%, transparent);
+
+      mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--color-success);
+        border-radius: 50%;
+        animation: pulseDot 1.5s ease-in-out infinite;
+      }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.3);
+        opacity: 0.7;
+      }
+    }
+
+    /* Empty State */
+    .shopping-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+
+      mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        color: var(--text-tertiary);
+        opacity: 0.5;
+        margin-bottom: 0.75rem;
+      }
+
+      p {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      span {
+        font-size: 0.8rem;
+        color: var(--text-tertiary);
+        margin-top: 0.25rem;
+      }
     }
 
     /* ===== Topics Card ===== */
@@ -1379,5 +1804,9 @@ export class DashboardViewComponent implements OnInit {
 
   getEventChildren(event: CalendarEventInstance): FamilyChild[] {
     return this.familyService.getChildren(event.event.childrenIds || []);
+  }
+
+  getUnitShort(unit: ShoppingUnit): string {
+    return getUnitMeta(unit).shortHe;
   }
 }

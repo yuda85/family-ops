@@ -8,10 +8,13 @@ import {
   FamilyMember,
   FamilyChild,
   FamilyInvite,
+  FamilySettings,
+  WeekStartDay,
   CreateFamilyData,
   CreateChildData,
   CreateInviteData,
   getNextChildColor,
+  DEFAULT_FAMILY_SETTINGS,
 } from './family.models';
 
 @Injectable({
@@ -53,6 +56,11 @@ export class FamilyService {
 
   readonly sortedChildren = computed(() => {
     return [...this._children()].sort((a, b) => a.order - b.order);
+  });
+
+  readonly weekStartDay = computed(() => {
+    const family = this._currentFamily();
+    return family?.settings?.weekStartDay ?? DEFAULT_FAMILY_SETTINGS.weekStartDay;
   });
 
   constructor(
@@ -179,6 +187,41 @@ export class FamilyService {
       await this.loadFamily(familyId);
     } catch (error: any) {
       console.error('Error updating family:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update family settings
+   */
+  async updateFamilySettings(settings: Partial<FamilySettings>): Promise<void> {
+    const familyId = this.familyId();
+    if (!familyId) {
+      throw new Error('אין משפחה פעילה');
+    }
+
+    if (!this.isAdmin()) {
+      throw new Error('אין לך הרשאה לעדכן הגדרות');
+    }
+
+    try {
+      const currentFamily = this._currentFamily();
+      const currentSettings = currentFamily?.settings ?? DEFAULT_FAMILY_SETTINGS;
+      const newSettings: FamilySettings = { ...currentSettings, ...settings };
+
+      await this.firestoreService.updateDocument(`families/${familyId}`, {
+        settings: newSettings,
+      });
+
+      // Update local state
+      if (currentFamily) {
+        this._currentFamily.set({
+          ...currentFamily,
+          settings: newSettings,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error updating family settings:', error);
       throw error;
     }
   }

@@ -9,6 +9,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ThemeService } from '../../../core/theme/theme.service';
 import { FamilyService } from '../../../core/family/family.service';
+import { WeekStartDay } from '../../../core/family/family.models';
 
 @Component({
   selector: 'app-profile',
@@ -86,6 +87,36 @@ import { FamilyService } from '../../../core/family/family.service';
                 מערכת
               </button>
             </div>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="theme-selector">
+            <div class="theme-label">
+              <mat-icon>calendar_today</mat-icon>
+              <span>תחילת שבוע</span>
+            </div>
+            <div class="theme-options week-start-options">
+              <button
+                class="theme-btn"
+                [class.active]="familyService.weekStartDay() === 'sunday'"
+                (click)="setWeekStart('sunday')"
+                [disabled]="!familyService.isAdmin()"
+              >
+                <mat-icon>wb_sunny</mat-icon>
+                ראשון
+              </button>
+              <button
+                class="theme-btn"
+                [class.active]="familyService.weekStartDay() === 'monday'"
+                (click)="setWeekStart('monday')"
+                [disabled]="!familyService.isAdmin()"
+              >
+                <mat-icon>today</mat-icon>
+                שני
+              </button>
+            </div>
+            @if (!familyService.isAdmin()) {
+              <p class="setting-hint">רק מנהלים יכולים לשנות הגדרה זו</p>
+            }
           </div>
         </div>
       </section>
@@ -276,7 +307,22 @@ import { FamilyService } from '../../../core/family/family.service';
             background: var(--color-primary-alpha);
             color: var(--color-primary);
           }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
         }
+      }
+
+      .week-start-options {
+        max-width: 300px;
+      }
+
+      .setting-hint {
+        font-size: 0.75rem;
+        color: var(--text-tertiary);
+        margin: 0.5rem 0 0;
       }
     }
 
@@ -391,5 +437,15 @@ export class ProfileComponent {
   async logout(): Promise<void> {
     await this.authService.logout();
     this.router.navigate(['/auth/login']);
+  }
+
+  async setWeekStart(day: WeekStartDay): Promise<void> {
+    if (!this.familyService.isAdmin()) return;
+
+    try {
+      await this.familyService.updateFamilySettings({ weekStartDay: day });
+    } catch (error) {
+      console.error('Error updating week start:', error);
+    }
   }
 }

@@ -2,12 +2,32 @@ import { Timestamp } from 'firebase/firestore';
 import { FamilyRole } from '../auth/auth.models';
 
 /**
+ * Week start day options
+ */
+export type WeekStartDay = 'sunday' | 'monday';
+
+/**
+ * Family settings stored in Firestore
+ */
+export interface FamilySettings {
+  weekStartDay: WeekStartDay;
+}
+
+/**
+ * Default family settings
+ */
+export const DEFAULT_FAMILY_SETTINGS: FamilySettings = {
+  weekStartDay: 'sunday',
+};
+
+/**
  * Family document stored in Firestore
  */
 export interface FamilyDocument {
   id: string;
   name: string;
   ownerUserId: string;
+  settings?: FamilySettings;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -170,6 +190,7 @@ export interface CalendarEvent {
   needsRide: boolean;
   driverUserId?: string;
   recurrence?: EventRecurrence;  // If set, this event repeats
+  defaultDrivers?: Record<number, string>;  // Per-day-of-week default drivers (0=Sun -> userId)
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -218,4 +239,118 @@ export interface UpdateEventData {
   childrenIds?: string[];
   needsRide?: boolean;
   driverUserId?: string;
+  defaultDrivers?: Record<number, string>;
+}
+
+// ============================================
+// Transportation Task Models
+// ============================================
+
+/**
+ * Transportation task status
+ */
+export type TransportationTaskStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
+
+/**
+ * Transportation task document stored in Firestore
+ * Either auto-generated from calendar events or standalone
+ */
+export interface TransportationTask {
+  id: string;
+  eventId: string | null;             // null for standalone tasks
+  dateKey: string;                    // "2025-01-15" for querying
+  date: Timestamp;
+
+  // Driver assignment
+  driverUserId: string | null;        // null = unassigned
+  driverAssignedBy?: string;
+  driverAssignedAt?: Timestamp;
+
+  // Status
+  status: TransportationTaskStatus;
+  completedAt?: Timestamp;
+  completedBy?: string;
+  notes?: string;
+
+  // Task details (from event OR user-entered for standalone)
+  title: string;
+  category: EventCategory;
+  startTime: Timestamp;               // Time of day
+  endTime?: Timestamp;
+  childrenIds: string[];
+  location?: string;
+
+  // For standalone tasks
+  isStandalone: boolean;              // true if not from event
+
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * View model for transportation task display
+ */
+export interface TransportationTaskView {
+  task: TransportationTask;
+  event: CalendarEvent | null;
+  children: FamilyChild[];
+  driver: FamilyMember | null;
+  isCurrentUserDriver: boolean;
+}
+
+/**
+ * View model for a day in the transportation planner
+ */
+export interface TransportationDayView {
+  date: Date;
+  dateKey: string;
+  dateLabel: string;
+  dayName: string;
+  isToday: boolean;
+  isTomorrow: boolean;
+  dayOfWeek: number;
+  tasks: TransportationTaskView[];
+  totalTasks: number;
+  assignedTasks: number;
+  unassignedTasks: number;
+}
+
+/**
+ * Dashboard view for "My Duties Today"
+ */
+export interface MyDutiesTodayView {
+  date: Date;
+  dateKey: string;
+  myTasks: TransportationTaskView[];
+  totalDuties: number;
+}
+
+/**
+ * Data for creating a standalone transportation task
+ */
+export interface CreateTransportationTaskData {
+  title: string;
+  date: Date;
+  startTime: Date;
+  endTime?: Date;
+  category: EventCategory;
+  childrenIds: string[];
+  location?: string;
+  driverUserId?: string;
+  notes?: string;
+}
+
+/**
+ * Data for updating a transportation task
+ */
+export interface UpdateTransportationTaskData {
+  driverUserId?: string | null;
+  status?: TransportationTaskStatus;
+  notes?: string;
+  title?: string;
+  startTime?: Date;
+  endTime?: Date;
+  childrenIds?: string[];
+  location?: string;
 }

@@ -3,6 +3,7 @@ import {
   FamilyChild,
 } from '../../core/family/family.models';
 import { Topic, TopicTask } from '../topics/topics.models';
+import { ShoppingCategory, ShoppingCategoryMeta, ShoppingListItem } from '../shopping/shopping.models';
 
 /**
  * Child overview with their upcoming events and ride needs
@@ -26,6 +27,17 @@ export interface EventDayGroup {
 }
 
 /**
+ * Category summary for shopping dashboard
+ */
+export interface ShoppingCategorySummary {
+  category: ShoppingCategory;
+  meta: ShoppingCategoryMeta;
+  totalItems: number;
+  checkedItems: number;
+  isComplete: boolean;
+}
+
+/**
  * Shopping status summary for dashboard
  */
 export interface ShoppingStatusSummary {
@@ -37,6 +49,9 @@ export interface ShoppingStatusSummary {
   isComplete: boolean;
   activeShoppers: string[]; // User IDs currently shopping
   status: 'active' | 'shopping' | 'completed' | null;
+  estimatedTotal: number;
+  categories: ShoppingCategorySummary[];
+  recentItems: ShoppingListItem[];
 }
 
 /**
