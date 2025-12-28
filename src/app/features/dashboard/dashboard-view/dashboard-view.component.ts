@@ -175,6 +175,9 @@ import { MyDutiesCardComponent } from '../my-duties-card/my-duties-card.componen
             </div>
           </section>
 
+          <!-- My Duties Today Section (Rides + Tasks) -->
+          <app-my-duties-card></app-my-duties-card>
+
           <!-- My Tasks Section -->
           <section class="card tasks-card">
             <div class="card-header">
@@ -241,9 +244,6 @@ import { MyDutiesCardComponent } from '../my-duties-card/my-duties-card.componen
               }
             </div>
           </section>
-
-          <!-- My Duties Today Section -->
-          <app-my-duties-card></app-my-duties-card>
 
           <!-- Important Topics Section -->
           <section class="card topics-card">
