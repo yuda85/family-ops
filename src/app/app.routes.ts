@@ -60,6 +60,10 @@ export const routes: Routes = [
         loadChildren: () => import('./features/shopping/shopping.routes'),
       },
       {
+        path: 'topics',
+        loadChildren: () => import('./features/topics/topics.routes'),
+      },
+      {
         path: 'family',
         loadChildren: () => import('./features/family/family.routes'),
       },

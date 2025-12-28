@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { ShoppingService } from '../shopping.service';
@@ -15,6 +16,7 @@ import { CatalogService } from '../catalog.service';
 import { ShoppingListItem, CategoryGroup, getUnitMeta } from '../shopping.models';
 import { ItemPickerComponent } from '../components/item-picker/item-picker.component';
 import { QuickAddComponent } from '../components/quick-add/quick-add.component';
+import { CompletionDialogComponent } from '../components/completion-dialog/completion-dialog.component';
 
 @Component({
   selector: 'app-list-view',
@@ -29,6 +31,7 @@ import { QuickAddComponent } from '../components/quick-add/quick-add.component';
     MatDialogModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
     EmptyStateComponent,
     QuickAddComponent,
   ],
@@ -38,6 +41,9 @@ import { QuickAddComponent } from '../components/quick-add/quick-add.component';
         <div class="header-top">
           <h1>רשימת קניות</h1>
           <div class="header-actions">
+            <button mat-icon-button routerLink="history" matTooltip="היסטוריה">
+              <mat-icon>history</mat-icon>
+            </button>
             <button mat-stroked-button routerLink="staples">
               <mat-icon>star</mat-icon>
               מועדפים
@@ -126,12 +132,19 @@ import { QuickAddComponent } from '../components/quick-add/quick-add.component';
           }
         </div>
 
-        @if (shoppingService.hasCheckedItems()) {
-          <button mat-button class="clear-checked" (click)="clearChecked()">
-            <mat-icon>delete_sweep</mat-icon>
-            נקה פריטים מסומנים
+        <!-- Action buttons -->
+        <div class="list-actions">
+          @if (shoppingService.hasCheckedItems()) {
+            <button mat-button class="clear-checked" (click)="clearChecked()">
+              <mat-icon>delete_sweep</mat-icon>
+              נקה מסומנים
+            </button>
+          }
+          <button mat-flat-button color="accent" class="finish-btn" (click)="finishShopping()">
+            <mat-icon>check_circle</mat-icon>
+            סיים קניות
           </button>
-        }
+        </div>
       } @else {
         <app-empty-state
           icon="shopping_cart"
@@ -411,11 +424,24 @@ import { QuickAddComponent } from '../components/quick-add/quick-add.component';
       }
     }
 
-    .clear-checked {
+    .list-actions {
       display: flex;
-      margin: 0 auto;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .clear-checked {
       color: var(--text-secondary);
 
+      mat-icon {
+        margin-inline-end: 0.25rem;
+      }
+    }
+
+    .finish-btn {
       mat-icon {
         margin-inline-end: 0.5rem;
       }
@@ -474,6 +500,20 @@ export class ListViewComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         // Items were added
+      }
+    });
+  }
+
+  finishShopping(): void {
+    const dialogRef = this.dialog.open(CompletionDialogComponent, {
+      width: '100%',
+      maxWidth: '450px',
+      disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result?.success) {
+        this.snackBar.open('קניות הושלמו בהצלחה!', '', { duration: 3000 });
       }
     });
   }

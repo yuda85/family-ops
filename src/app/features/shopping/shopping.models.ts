@@ -221,6 +221,7 @@ export interface ShoppingTrip {
   estimatedTotal: number;
   actualTotal: number;
   items: ShoppingTripItem[]; // Snapshot of items
+  createdAt?: Timestamp; // Fallback for older documents
 }
 
 export interface ShoppingTripItem {
@@ -229,7 +230,7 @@ export interface ShoppingTripItem {
   quantity: number;
   unit: ShoppingUnit;
   estimatedPrice: number;
-  actualPrice?: number;
+  actualPrice?: number | null;
   wasChecked: boolean;
 }
 

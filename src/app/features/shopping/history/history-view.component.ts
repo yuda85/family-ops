@@ -7,7 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { ShoppingHistoryService } from '../shopping-history.service';
-import { ShoppingTrip } from '../shopping.models';
+import type { ShoppingTrip } from '../shopping.models';
 
 @Component({
   selector: 'app-history-view',
@@ -111,7 +111,7 @@ import { ShoppingTrip } from '../shopping.models';
             @for (trip of historyService.history(); track trip.id) {
               <div class="trip-card">
                 <div class="trip-date">
-                  {{ formatDate(trip.completedAt.toDate()) }}
+                  {{ formatDate(getTripDate(trip)) }}
                 </div>
                 <div class="trip-details">
                   <div class="trip-row">
@@ -399,8 +399,14 @@ import { ShoppingTrip } from '../shopping.models';
 export class HistoryViewComponent implements OnInit {
   historyService = inject(ShoppingHistoryService);
 
-  ngOnInit(): void {
-    this.historyService.loadHistory();
+  async ngOnInit(): Promise<void> {
+    await this.historyService.loadHistory();
+  }
+
+  getTripDate(trip: ShoppingTrip): Date {
+    // Prefer completedAt, fall back to createdAt
+    const timestamp = trip.completedAt ?? trip.createdAt;
+    return timestamp ? timestamp.toDate() : new Date();
   }
 
   formatDate(date: Date): string {

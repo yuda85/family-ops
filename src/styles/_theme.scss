@@ -421,8 +421,33 @@ select {
 
 // Snackbar
 .mat-mdc-snack-bar-container {
-  --mdc-snackbar-container-shape: #{$radius-sm};
+  --mdc-snackbar-container-shape: #{$radius-lg};
   --mdc-snackbar-supporting-text-font: #{$font-family-hebrew};
+  --mdc-snackbar-supporting-text-size: #{$font-size-sm};
+  --mdc-snackbar-supporting-text-line-height: 1.4;
+  --mdc-snackbar-container-color: #{$color-neutral-900};
+  --mdc-snackbar-supporting-text-color: #ffffff;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    font-family: $font-family-hebrew;
+    font-size: $font-size-sm;
+    color: var(--color-primary-light);
+  }
+
+  .mdc-snackbar__surface {
+    min-width: auto;
+    max-width: 90vw;
+
+    @media (min-width: 600px) {
+      min-width: 320px;
+    }
+  }
+
+  .mdc-snackbar__label {
+    font-family: $font-family-hebrew;
+    font-size: $font-size-sm;
+    padding: 14px 16px;
+  }
 }
 
 // Dialog
@@ -602,13 +627,40 @@ select {
     }
   }
 
-  // Select panel
+  // Select panel and dropdowns
   .mat-mdc-select-panel {
     background-color: var(--surface-primary) !important;
   }
 
+  .mat-mdc-select {
+    --mat-select-trigger-text-color: var(--text-primary);
+    --mat-select-enabled-trigger-text-color: var(--text-primary);
+    --mat-select-disabled-trigger-text-color: var(--text-disabled);
+    --mat-select-placeholder-text-color: var(--text-tertiary);
+    --mat-select-enabled-arrow-color: var(--text-secondary);
+    --mat-select-focused-arrow-color: var(--color-primary);
+
+    .mat-mdc-select-value {
+      color: var(--text-primary) !important;
+    }
+
+    .mat-mdc-select-placeholder {
+      color: var(--text-tertiary) !important;
+    }
+
+    .mat-mdc-select-arrow {
+      color: var(--text-secondary);
+    }
+  }
+
   .mat-mdc-option {
+    --mat-option-label-text-color: var(--text-primary);
+    --mat-option-selected-state-label-text-color: var(--color-primary);
     color: var(--text-primary) !important;
+
+    .mdc-list-item__primary-text {
+      color: var(--text-primary) !important;
+    }
 
     &:hover:not(.mdc-list-item--disabled) {
       background-color: var(--surface-hover) !important;
@@ -616,7 +668,20 @@ select {
 
     &.mdc-list-item--selected {
       background-color: var(--color-primary-alpha) !important;
+
+      .mdc-list-item__primary-text {
+        color: var(--color-primary) !important;
+      }
     }
+
+    &.mat-mdc-option-active {
+      background-color: var(--surface-hover) !important;
+    }
+  }
+
+  // Autocomplete panel
+  .mat-mdc-autocomplete-panel {
+    background-color: var(--surface-primary) !important;
   }
 
   // Slide toggle
@@ -668,6 +733,16 @@ select {
     --mat-divider-color: var(--border-default);
   }
 
+  // Snackbar - invert colors for dark mode
+  .mat-mdc-snack-bar-container {
+    --mdc-snackbar-container-color: #f5f5f5;
+    --mdc-snackbar-supporting-text-color: #1e1e1e;
+
+    .mat-mdc-button.mat-mdc-snack-bar-action {
+      color: var(--color-primary-dark);
+    }
+  }
+
   // Tooltip
   .mat-mdc-tooltip {
     --mdc-plain-tooltip-container-color: var(--tooltip-bg);
@@ -689,6 +764,24 @@ select {
   .mat-mdc-chip {
     --mdc-chip-elevated-container-color: var(--surface-secondary);
     --mdc-chip-label-text-color: var(--text-primary);
+  }
+
+  // Checkbox
+  .mat-mdc-checkbox {
+    --mdc-checkbox-unselected-icon-color: var(--text-tertiary);
+    --mdc-checkbox-selected-icon-color: var(--color-primary);
+    --mdc-checkbox-selected-checkmark-color: var(--text-on-primary);
+    --mdc-checkbox-selected-focus-icon-color: var(--color-primary);
+    --mdc-checkbox-selected-hover-icon-color: var(--color-primary);
+    --mdc-checkbox-selected-pressed-icon-color: var(--color-primary);
+
+    .mdc-label {
+      color: var(--text-primary) !important;
+    }
+
+    label {
+      color: var(--text-primary);
+    }
   }
 
   // Tabs
@@ -879,8 +972,35 @@ select {
       background-color: var(--surface-primary) !important;
     }
 
+    .mat-mdc-select {
+      --mat-select-trigger-text-color: var(--text-primary);
+      --mat-select-enabled-trigger-text-color: var(--text-primary);
+      --mat-select-disabled-trigger-text-color: var(--text-disabled);
+      --mat-select-placeholder-text-color: var(--text-tertiary);
+      --mat-select-enabled-arrow-color: var(--text-secondary);
+      --mat-select-focused-arrow-color: var(--color-primary);
+
+      .mat-mdc-select-value {
+        color: var(--text-primary) !important;
+      }
+
+      .mat-mdc-select-placeholder {
+        color: var(--text-tertiary) !important;
+      }
+
+      .mat-mdc-select-arrow {
+        color: var(--text-secondary);
+      }
+    }
+
     .mat-mdc-option {
+      --mat-option-label-text-color: var(--text-primary);
+      --mat-option-selected-state-label-text-color: var(--color-primary);
       color: var(--text-primary) !important;
+
+      .mdc-list-item__primary-text {
+        color: var(--text-primary) !important;
+      }
 
       &:hover:not(.mdc-list-item--disabled) {
         background-color: var(--surface-hover) !important;
@@ -888,7 +1008,19 @@ select {
 
       &.mdc-list-item--selected {
         background-color: var(--color-primary-alpha) !important;
+
+        .mdc-list-item__primary-text {
+          color: var(--color-primary) !important;
+        }
       }
+
+      &.mat-mdc-option-active {
+        background-color: var(--surface-hover) !important;
+      }
+    }
+
+    .mat-mdc-autocomplete-panel {
+      background-color: var(--surface-primary) !important;
     }
 
     .mat-mdc-slide-toggle {
@@ -942,9 +1074,37 @@ select {
       --mdc-plain-tooltip-supporting-text-color: var(--tooltip-text);
     }
 
+    // Snackbar - invert colors for dark mode
+    .mat-mdc-snack-bar-container {
+      --mdc-snackbar-container-color: #f5f5f5;
+      --mdc-snackbar-supporting-text-color: #1e1e1e;
+
+      .mat-mdc-button.mat-mdc-snack-bar-action {
+        color: var(--color-primary-dark);
+      }
+    }
+
     .mat-mdc-fab,
     .mat-mdc-mini-fab {
       --mdc-fab-container-color: var(--color-primary);
+    }
+
+    // Checkbox
+    .mat-mdc-checkbox {
+      --mdc-checkbox-unselected-icon-color: var(--text-tertiary);
+      --mdc-checkbox-selected-icon-color: var(--color-primary);
+      --mdc-checkbox-selected-checkmark-color: var(--text-on-primary);
+      --mdc-checkbox-selected-focus-icon-color: var(--color-primary);
+      --mdc-checkbox-selected-hover-icon-color: var(--color-primary);
+      --mdc-checkbox-selected-pressed-icon-color: var(--color-primary);
+
+      .mdc-label {
+        color: var(--text-primary) !important;
+      }
+
+      label {
+        color: var(--text-primary);
+      }
     }
 
     // Sidenav and nav list

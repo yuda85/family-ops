@@ -95,6 +95,7 @@ export class BottomNavComponent {
   navItems: NavItem[] = [
     { path: '/app/calendar', icon: 'calendar_month', label: 'יומן', exactMatch: false },
     { path: '/app/shopping', icon: 'shopping_cart', label: 'קניות', exactMatch: false },
+    { path: '/app/topics', icon: 'topic', label: 'נושאים', exactMatch: false },
     { path: '/app/family/children', icon: 'child_care', label: 'ילדים', exactMatch: false },
     { path: '/app/settings', icon: 'settings', label: 'הגדרות', exactMatch: false },
   ];

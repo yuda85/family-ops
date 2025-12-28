@@ -25,10 +25,13 @@ The shopping feature provides:
 │  ├── List View (default)                                │
 │  │   ├── View items grouped by category                 │
 │  │   ├── Check/uncheck items with real-time sync        │
-│  │   ├── Quick-add with autocomplete                    │
-│  │   ├── Add from catalog picker                        │
+│  │   ├── Quick-add bar (always visible)                 │
+│  │   ├── Catalog picker dialog (batch selection)        │
 │  │   ├── See progress bar and estimated total           │
-│  │   └── Clear checked items                            │
+│  │   ├── Clear checked items                            │
+│  │   ├── Finish shopping (completion dialog)            │
+│  │   ├── Quick access to history via header icon        │
+│  │   └── Enter supermarket mode                         │
 │  │                                                      │
 │  ├── /shopping/supermarket/:id                          │
 │  │   ├── Large touch targets (64px+ height)             │
@@ -45,8 +48,9 @@ The shopping feature provides:
 │  │                                                      │
 │  └── /shopping/history                                  │
 │      ├── View completed shopping trips                  │
-│      ├── Monthly spending summaries                     │
-│      └── Estimated vs actual cost comparison            │
+│      ├── Monthly spending summaries (table view)        │
+│      ├── Total stats (trips, expenses, average)         │
+│      └── Estimate accuracy indicator                    │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -528,20 +532,47 @@ Categories covered:
 ```
 
 ### Completion Dialog
+
+A beautifully designed receipt-style dialog with animations:
+
 ```
-┌─────────────────────────────────────────┐
-│         🎉 סיום קניות!                 │
-├─────────────────────────────────────────┤
+┌┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┬┐  ← Decorative zigzag edge
 │                                         │
-│   סה"כ משוער:        ₪142              │
+│              ✓ (animated)               │  ← Success badge with
+│           סיום הקניות                   │     SVG checkmark animation
+│        בואו נסכם את הסיבוב!             │     + shimmer effect
 │                                         │
-│   סה"כ בפועל:    [________]            │
+│  ┌──────────────┐  ┌──────────────┐    │
+│  │ 🛒  8        │  │ 🚫  2        │    │  ← Stats cards
+│  │    נקנו      │  │    דילגנו   │    │     (purchased/skipped)
+│  └──────────────┘  └──────────────┘    │
 │                                         │
-│   הפרש: ₪8 פחות מהצפוי ✓               │
+│  ┌─────────────────────────────────┐   │
+│  │  📊 הערכה           ₪142       │   │  ← Price comparison
+│  │  ─ ─ ─ ─ ─ ● ─ ─ ─ ─ ─ ● ─ ─  │   │     section with fancy
+│  │  📃 בפועל        [₪ 150    ]   │   │     dashed divider
+│  └─────────────────────────────────┘   │
 │                                         │
-│         [ביטול]  [סיים קניות]          │
-└─────────────────────────────────────────┘
+│  ┌─────────────────────────────────┐   │
+│  │  ↑  +₪8                         │   │  ← Difference badge
+│  │     מעל ההערכה                  │   │     (color-coded:
+│  └─────────────────────────────────┘   │      red/green/gold)
+│                                         │
+│       [ביטול]    [🎉 סיום!]            │  ← Action buttons with
+│                                         │     gradient + shadow
+└┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┘  ← Decorative zigzag edge
 ```
+
+**Design Features:**
+- Receipt-style decorative zigzag edges
+- Animated success badge with SVG checkmark stroke animation
+- Shimmer effect on the success badge
+- Stats cards showing items purchased vs skipped
+- Price comparison with fancy dashed divider
+- Color-coded difference badge (red for over, green for under, gold pulse for exact)
+- Gradient primary button with shadow and hover lift effect
+- Staggered fade-in animations for all elements
+- Subtle noise texture overlay
 
 ## Security Rules
 
@@ -584,19 +615,57 @@ match /users/{userId}/shoppingFavorites/{favoriteId} {
 - 200+ item catalog with Hebrew names and prices
 - Smart categorization by keywords
 - Quick-add with autocomplete
-- Item picker dialog (full catalog browser)
+- Item picker dialog with batch selection (select multiple items, save all at once)
 - Quantity and price editing
 - Favorites/staples management
 - Supermarket mode with large touch targets
 - Wake Lock API for screen-on
 - Undo stack (last 5 actions)
 - Confetti celebrations
-- Shopping history view
-- Completion dialog with cost comparison
+- Shopping history view with monthly summaries
+- Redesigned completion dialog (receipt-style with animations)
 - Budget tracking (estimated vs actual)
 - Monthly spending summaries
+- "Finish Shopping" button accessible from main list view (not just supermarket mode)
+- Always-visible "Add Items" bar with quick-add search and catalog button
+- History button in header for quick access
 
 ### Planned
 - Drag & drop reordering
 - Smart suggestions based on purchase patterns
 - Active shoppers presence indicator
+
+## Recent Updates
+
+### Item Picker - Batch Selection
+The item picker now supports batch selection for better UX:
+- Click items to select/deselect (toggle with visual feedback)
+- Selected items show a checkmark and highlighted border
+- Footer shows count of selected items
+- "Clear" button to reset selection
+- "Add to List" button saves all selected items at once
+- Only saves to Firestore when dialog is confirmed
+
+### Completion Dialog Redesign
+The completion dialog received a major visual overhaul:
+- Receipt-style aesthetic with decorative zigzag edges
+- Animated SVG checkmark with stroke animation
+- Shimmer effect on success badge
+- Two stat cards showing purchased vs skipped items
+- Fancy dashed divider between estimated and actual prices
+- Custom styled input field with terracotta accent
+- Color-coded difference badge (red/green/gold with icons)
+- Staggered entrance animations
+- Gradient buttons with hover effects
+- CSS-only spinner for loading state
+
+### List View Improvements
+- "Finish Shopping" button always available when items exist
+- History icon button in header for quick navigation
+- "Add Items" bar always visible (not hidden in empty state)
+- Improved empty state messaging
+
+### History View Fixes
+- Fixed history not displaying due to missing `completedAt` field
+- Client-side sorting with fallback to `createdAt` for older documents
+- Proper date handling for monthly spending calculations

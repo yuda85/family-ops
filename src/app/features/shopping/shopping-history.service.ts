@@ -46,7 +46,9 @@ export class ShoppingHistoryService {
     ];
 
     for (const trip of trips) {
-      const date = trip.completedAt.toDate();
+      // Prefer completedAt, fall back to createdAt
+      const timestamp = trip.completedAt ?? trip.createdAt;
+      const date = timestamp ? timestamp.toDate() : new Date();
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       const monthLabel = `${hebrewMonths[date.getMonth()]} ${date.getFullYear()}`;
 
@@ -107,10 +109,17 @@ export class ShoppingHistoryService {
     this._error.set(null);
 
     try {
-      const trips = await this.firestoreService.getCollection<ShoppingTrip>(
-        `families/${familyId}/shoppingHistory`,
-        orderBy('completedAt', 'desc')
+      // Fetch all documents without ordering (some may not have completedAt)
+      let trips = await this.firestoreService.getCollection<ShoppingTrip>(
+        `families/${familyId}/shoppingHistory`
       );
+
+      // Sort client-side - prefer completedAt, fall back to createdAt
+      trips = trips.sort((a, b) => {
+        const dateA = a.completedAt?.toMillis() ?? a.createdAt?.toMillis() ?? 0;
+        const dateB = b.completedAt?.toMillis() ?? b.createdAt?.toMillis() ?? 0;
+        return dateB - dateA; // Descending
+      });
 
       this._history.set(trips.slice(0, limit));
     } catch (error: any) {

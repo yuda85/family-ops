@@ -551,14 +551,15 @@ export class ShoppingService implements OnDestroy {
       quantity: item.quantity,
       unit: item.unit,
       estimatedPrice: item.estimatedPrice,
-      actualPrice: item.actualPrice,
+      actualPrice: item.actualPrice ?? null,
       wasChecked: item.checked,
     }));
 
     const tripData = {
       familyId,
       listId: list.id,
-      listName: list.name,
+      listName: list.name ?? 'רשימת קניות',
+      completedAt: this.firestoreService.getServerTimestamp(),
       completedBy: userId,
       totalItems: items.length,
       checkedItems: items.filter((i) => i.checked).length,
