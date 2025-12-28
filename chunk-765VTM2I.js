@@ -1,1 +1,0 @@
-import"./chunk-ATWMZ64T.js";var o=[{path:"",loadComponent:()=>import("./chunk-SVE2NS4A.js").then(t=>t.ProfileComponent),title:"\u05D4\u05D2\u05D3\u05E8\u05D5\u05EA - FamilyOps"}],e=o;export{e as default,o as settingsRoutes};

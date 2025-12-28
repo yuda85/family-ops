@@ -1,0 +1,1 @@
+import"./chunk-ATWMZ64T.js";var o=[{path:"",loadComponent:()=>import("./chunk-SLJXPQPF.js").then(t=>t.PlannerViewComponent),title:"\u05DC\u05D5\u05D7 \u05D4\u05E1\u05E2\u05D5\u05EA - FamilyOps"}],e=o;export{e as default,o as transportationRoutes};
