@@ -101,6 +101,36 @@ picture {
 }
 
 // ---------------------------------------------
+// Custom Scrollbar
+// ---------------------------------------------
+
+// Webkit browsers (Chrome, Safari, Edge)
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--text-tertiary);
+  }
+}
+
+// Firefox
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) var(--surface-secondary);
+}
+
+// ---------------------------------------------
 // App Container
 // ---------------------------------------------
 
@@ -586,8 +616,37 @@ picture {
   direction: rtl;
 }
 
+// Dialog surface - prevent external scrolling
+.mat-mdc-dialog-surface {
+  overflow: hidden !important;
+}
+
 .mat-mdc-form-field {
   width: 100%;
+
+  // Ensure consistent Hebrew font in form fields
+  .mdc-text-field__input,
+  .mat-mdc-select-value,
+  .mdc-floating-label,
+  .mat-mdc-form-field-hint,
+  .mat-mdc-form-field-error {
+    font-family: $font-family-hebrew !important;
+  }
+
+  // Fix label text
+  .mdc-floating-label {
+    font-size: $font-size-base;
+  }
+}
+
+// Ensure select options have Hebrew font
+.mat-mdc-option {
+  font-family: $font-family-hebrew !important;
+}
+
+// Ensure select panel doesn't cause horizontal scroll
+.mat-mdc-select-panel {
+  font-family: $font-family-hebrew !important;
 }
 
 .mat-mdc-button-base {
@@ -598,4 +657,13 @@ picture {
 .mat-icon {
   direction: ltr;
   display: inline-flex !important;
+}
+
+// Slide toggle label font
+.mat-mdc-slide-toggle {
+  font-family: $font-family-hebrew !important;
+
+  .mdc-label {
+    font-family: $font-family-hebrew !important;
+  }
 }

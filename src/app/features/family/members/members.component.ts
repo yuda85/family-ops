@@ -143,12 +143,12 @@ import { FamilyRole } from '../../../core/auth/auth.models';
       height: 48px;
       border-radius: 50%;
       background: var(--color-primary);
-      color: white;
+      color: var(--text-on-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      font-size: 0.875rem;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-sm);
 
       &.current-user {
         border: 2px solid var(--color-secondary);

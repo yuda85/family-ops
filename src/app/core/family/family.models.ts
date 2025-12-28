@@ -144,3 +144,78 @@ export function getNextChildColor(usedColors: string[]): string {
   const available = CHILD_COLORS.filter((c) => !usedColors.includes(c));
   return available.length > 0 ? available[0] : CHILD_COLORS[0];
 }
+
+/**
+ * Recurrence configuration for repeating events
+ */
+export interface EventRecurrence {
+  daysOfWeek: number[];  // 0=Sunday, 6=Saturday
+  endDate: Timestamp;    // When the recurrence ends
+}
+
+/**
+ * Calendar event document stored in Firestore
+ */
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  description?: string;
+  location?: string;
+  category: EventCategory;
+  isFamilyEvent: boolean;
+  start: Timestamp;
+  end: Timestamp;
+  isAllDay: boolean;
+  childrenIds: string[];
+  needsRide: boolean;
+  driverUserId?: string;
+  recurrence?: EventRecurrence;  // If set, this event repeats
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
+/**
+ * A virtual instance of a recurring event (not stored in Firestore)
+ */
+export interface CalendarEventInstance {
+  event: CalendarEvent;
+  instanceDate: Date;  // The specific date this instance occurs on
+  instanceStart: Date;
+  instanceEnd: Date;
+}
+
+/**
+ * Data for creating a new event
+ */
+export interface CreateEventData {
+  title: string;
+  description?: string;
+  location?: string;
+  category: EventCategory;
+  start: Date;
+  end: Date;
+  isAllDay: boolean;
+  childrenIds: string[];
+  needsRide: boolean;
+  recurrence?: {
+    daysOfWeek: number[];
+    endDate: Date;
+  };
+}
+
+/**
+ * Data for updating an existing event
+ */
+export interface UpdateEventData {
+  title?: string;
+  description?: string;
+  location?: string;
+  category?: EventCategory;
+  start?: Date;
+  end?: Date;
+  isAllDay?: boolean;
+  childrenIds?: string[];
+  needsRide?: boolean;
+  driverUserId?: string;
+}

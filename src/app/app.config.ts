@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { provideRouter, withHashLocation, withViewTransitions } from '@angular/router';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideNativeDateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 
 import { routes } from './app.routes';
 import { initializeFirebase } from './core/firebase/firebase.config';
@@ -30,6 +31,10 @@ export const appConfig: ApplicationConfig = {
       withViewTransitions() // Smooth page transitions
     ),
     provideAnimationsAsync(),
+    // Provide native date adapter for datepicker
+    provideNativeDateAdapter(),
+    // Set locale for dates - en-GB uses DD/MM/YYYY format
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
     // Initialize Firebase before app starts
     {
       provide: APP_INITIALIZER,

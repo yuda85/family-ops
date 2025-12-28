@@ -148,13 +148,13 @@ import { ThemeService } from '../../../core/theme/theme.service';
     .error-message {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      background: rgba(244, 67, 54, 0.1);
+      gap: var(--spacing-2);
+      padding: var(--spacing-3) var(--spacing-4);
+      background: var(--error-bg);
       color: var(--color-error);
-      border-radius: 0.75rem;
-      font-size: 0.875rem;
-      margin-bottom: 1.5rem;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-sm);
+      margin-bottom: var(--spacing-6);
 
       mat-icon {
         font-size: 20px;

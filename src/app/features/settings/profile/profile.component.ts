@@ -188,19 +188,19 @@ import { FamilyService } from '../../../core/family/family.service';
         height: 56px;
         border-radius: 50%;
         background: var(--color-primary);
-        color: white;
+        color: var(--text-on-primary);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        font-weight: 600;
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-semibold);
       }
 
       .profile-info {
         h3 {
           margin: 0;
-          font-size: 1.125rem;
-          font-weight: 600;
+          font-size: var(--font-size-lg);
+          font-weight: var(--font-weight-semibold);
         }
 
         p {
@@ -289,20 +289,20 @@ import { FamilyService } from '../../../core/family/family.service';
       .family-badge {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
+        border-radius: var(--radius-lg);
         background: var(--color-secondary);
-        color: white;
+        color: var(--text-on-colored);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
+        font-weight: var(--font-weight-semibold);
       }
 
       .family-details {
         h3 {
           margin: 0;
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: var(--font-size-base);
+          font-weight: var(--font-weight-semibold);
         }
 
         p {

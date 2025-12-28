@@ -1,0 +1,146 @@
+<div class="calendar-page">
+  <header class="page-header">
+    <div class="header-top">
+      <h1>יומן משפחתי</h1>
+      <button mat-fab color="primary" class="add-event-fab" aria-label="הוסף אירוע" (click)="addEvent()">
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+
+    <div class="header-controls">
+      <div class="date-navigation">
+        <button mat-icon-button (click)="previousPeriod()">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <span class="current-date">{{ getCurrentDateLabel() }}</span>
+        <button mat-icon-button (click)="nextPeriod()">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button mat-button (click)="goToToday()">היום</button>
+      </div>
+
+      <mat-button-toggle-group
+        [value]="currentView()"
+        (change)="currentView.set($event.value)"
+      >
+        <mat-button-toggle value="month">חודש</mat-button-toggle>
+        <mat-button-toggle value="week">שבוע</mat-button-toggle>
+        <mat-button-toggle value="day">יום</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </header>
+
+  <div class="calendar-container">
+    @switch (currentView()) {
+      @case ('month') {
+        <div class="month-view">
+          <div class="weekdays-header">
+            @for (day of weekDays; track day) {
+              <div class="weekday">{{ day }}</div>
+            }
+          </div>
+          <div class="days-grid">
+            @for (week of monthWeeks(); track $index) {
+              <div class="week-row">
+                @for (day of week; track day.dateStr) {
+                  <div
+                    class="day-cell"
+                    [class.other-month]="!day.isCurrentMonth"
+                    [class.today]="day.isToday"
+                    [class.selected]="isDateSelected(day.dateStr)"
+                    (click)="selectDate(day.date)"
+                  >
+                    <span class="day-number">{{ day.dayNumber }}</span>
+                    @if (day.events.length > 0) {
+                      <div class="event-dots">
+                        @for (event of day.events.slice(0, 3); track event.id) {
+                          <span class="event-dot" [style.background]="event.color"></span>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @case ('week') {
+        <app-empty-state
+          icon="view_week"
+          title="תצוגת שבוע"
+          description="תצוגת השבוע תהיה זמינה בקרוב"
+        ></app-empty-state>
+      }
+
+      @case ('day') {
+        <app-empty-state
+          icon="today"
+          title="תצוגת יום"
+          description="תצוגת היום תהיה זמינה בקרוב"
+        ></app-empty-state>
+      }
+    }
+  </div>
+
+  @if (selectedDate()) {
+    <div class="selected-day-events">
+      <h3>אירועים ב-{{ formatDate(selectedDate()!) }}</h3>
+      @if (selectedDayEvents().length === 0) {
+        <app-empty-state
+          icon="event"
+          title="אין אירועים"
+          description="לחצו על + כדי להוסיף אירוע חדש"
+          actionLabel="הוסף אירוע"
+          actionIcon="add"
+          (action)="addEvent()"
+        ></app-empty-state>
+      } @else {
+        <div class="events-list">
+          @for (instance of selectedDayEvents(); track instance.event.id + instance.instanceDate.getTime()) {
+            <div class="event-item" (click)="openEvent(instance)">
+              <div class="event-color" [style.background]="getCategoryColor(instance.event.category)"></div>
+              <div class="event-content">
+                <span class="event-title">{{ instance.event.title }}</span>
+
+                <div class="event-details">
+                  <!-- Time -->
+                  <span class="event-detail">
+                    <mat-icon>schedule</mat-icon>
+                    {{ formatTimeRange(instance) }}
+                  </span>
+
+                  <!-- Location -->
+                  @if (instance.event.location) {
+                    <span class="event-detail">
+                      <mat-icon>location_on</mat-icon>
+                      {{ instance.event.location }}
+                    </span>
+                  }
+
+                  <!-- Needs Ride -->
+                  @if (instance.event.needsRide) {
+                    <span class="event-detail ride-indicator">
+                      <mat-icon>directions_car</mat-icon>
+                      צריך הסעה
+                    </span>
+                  }
+
+                  <!-- Recurring -->
+                  @if (instance.event.recurrence) {
+                    <span class="event-detail recurring-indicator">
+                      <mat-icon>repeat</mat-icon>
+                      {{ formatRecurrence(instance.event) }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <mat-icon class="event-arrow">chevron_left</mat-icon>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

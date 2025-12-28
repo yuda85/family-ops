@@ -288,14 +288,14 @@ type ViewMode = 'select' | 'create' | 'join';
     .family-avatar {
       width: 48px;
       height: 48px;
-      border-radius: 12px;
+      border-radius: var(--radius-lg);
       background: var(--color-primary);
-      color: white;
+      color: var(--text-on-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      font-size: 1rem;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-base);
     }
 
     .family-info {
@@ -380,12 +380,12 @@ type ViewMode = 'select' | 'create' | 'join';
     .error-message {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem 1rem;
-      background: rgba(244, 67, 54, 0.1);
+      gap: var(--spacing-2);
+      padding: var(--spacing-3) var(--spacing-4);
+      background: var(--error-bg);
       color: var(--color-error);
-      border-radius: 0.75rem;
-      font-size: 0.875rem;
+      border-radius: var(--radius-lg);
+      font-size: var(--font-size-sm);
 
       mat-icon {
         font-size: 20px;

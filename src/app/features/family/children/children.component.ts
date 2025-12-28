@@ -216,13 +216,13 @@ import { CHILD_COLORS } from '../../../core/family/family.models';
       .child-avatar {
         width: 48px;
         height: 48px;
-        border-radius: 12px;
+        border-radius: var(--radius-lg);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: white;
+        font-size: var(--font-size-xl);
+        font-weight: var(--font-weight-semibold);
+        color: var(--text-on-colored);
       }
 
       .child-info {
@@ -230,12 +230,12 @@ import { CHILD_COLORS } from '../../../core/family/family.models';
 
         h3 {
           margin: 0;
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: var(--font-size-base);
+          font-weight: var(--font-weight-semibold);
         }
 
         .child-age {
-          font-size: 0.75rem;
+          font-size: var(--font-size-xs);
           color: var(--text-secondary);
         }
       }

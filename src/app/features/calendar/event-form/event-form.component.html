@@ -1,0 +1,185 @@
+<div class="event-form-dialog">
+  <div class="dialog-header">
+    <h2 mat-dialog-title>{{ isEditMode ? 'עריכת אירוע' : 'אירוע חדש' }}</h2>
+    <button mat-icon-button (click)="onCancel()" class="close-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    <form [formGroup]="form" class="event-form">
+      <!-- Title -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>כותרת</mat-label>
+        <input matInput formControlName="title" placeholder="שם האירוע" />
+        @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+          <mat-error>שדה חובה</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- Category -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>קטגוריה</mat-label>
+        <mat-select formControlName="category">
+          <mat-select-trigger>
+            <div class="category-trigger">
+              <mat-icon [style.color]="getSelectedCategoryColor()">{{ getSelectedCategoryIcon() }}</mat-icon>
+              <span>{{ getSelectedCategoryLabel() }}</span>
+            </div>
+          </mat-select-trigger>
+          @for (category of categories; track category.id) {
+            <mat-option [value]="category.id">
+              <div class="category-option">
+                <mat-icon [style.color]="category.color">{{ category.icon }}</mat-icon>
+                <span>{{ category.labelHe }}</span>
+              </div>
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Date -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>תאריך</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="date" />
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+
+      <!-- All Day Toggle -->
+      <div class="form-row">
+        <mat-slide-toggle formControlName="isAllDay">כל היום</mat-slide-toggle>
+      </div>
+
+      <!-- Time Fields - Always show but disable based on isAllDay -->
+      <div class="time-row" [class.disabled]="form.get('isAllDay')?.value">
+        <mat-form-field appearance="outline">
+          <mat-label>שעת התחלה</mat-label>
+          <input matInput type="time" formControlName="startTime" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>שעת סיום</mat-label>
+          <input matInput type="time" formControlName="endTime" />
+        </mat-form-field>
+      </div>
+
+      <!-- Repeat Section -->
+      <div class="form-row">
+        <mat-slide-toggle formControlName="isRepeating">
+          <div class="toggle-label">
+            <mat-icon>repeat</mat-icon>
+            <span>חזרה</span>
+          </div>
+        </mat-slide-toggle>
+      </div>
+
+      <div class="repeat-section" [class.hidden]="!form.get('isRepeating')?.value">
+        <label class="section-label">ימים בשבוע</label>
+        <div class="weekdays-selector">
+          @for (day of weekDays; track day.value) {
+            <button
+              type="button"
+              class="weekday-chip"
+              [class.selected]="isDaySelected(day.value)"
+              (click)="toggleDay(day.value)"
+            >
+              {{ day.label }}
+            </button>
+          }
+        </div>
+
+        <!-- Repeat End Date -->
+        <mat-form-field appearance="outline" class="full-width repeat-end-field">
+          <mat-label>עד תאריך</mat-label>
+          <input matInput [matDatepicker]="repeatEndPicker" formControlName="repeatEndDate" />
+          <mat-datepicker-toggle matIconSuffix [for]="repeatEndPicker"></mat-datepicker-toggle>
+          <mat-datepicker #repeatEndPicker></mat-datepicker>
+        </mat-form-field>
+      </div>
+
+      <!-- Children Selection -->
+      @if (children().length > 0) {
+        <div class="children-section">
+          <label class="section-label">ילדים</label>
+          <div class="children-chips">
+            @for (child of children(); track child.id) {
+              <button
+                type="button"
+                class="child-chip"
+                [class.selected]="isChildSelected(child.id)"
+                [style.--child-color]="child.color"
+                (click)="toggleChild(child.id)"
+              >
+                <span class="child-avatar" [style.background]="child.color">
+                  {{ child.name.charAt(0) }}
+                </span>
+                <span class="child-name">{{ child.name }}</span>
+                @if (isChildSelected(child.id)) {
+                  <mat-icon class="check-icon">check</mat-icon>
+                }
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Location -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>מיקום</mat-label>
+        <input matInput formControlName="location" placeholder="כתובת או שם המקום" />
+        <mat-icon matPrefix>location_on</mat-icon>
+      </mat-form-field>
+
+      <!-- Description -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>תיאור</mat-label>
+        <textarea
+          matInput
+          formControlName="description"
+          placeholder="פרטים נוספים..."
+          rows="2"
+        ></textarea>
+      </mat-form-field>
+
+      <!-- Needs Ride -->
+      <div class="form-row">
+        <mat-slide-toggle formControlName="needsRide">
+          <div class="toggle-label">
+            <mat-icon>directions_car</mat-icon>
+            <span>צריך הסעה</span>
+          </div>
+        </mat-slide-toggle>
+      </div>
+    </form>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    @if (isEditMode) {
+      <button
+        mat-button
+        color="warn"
+        (click)="onDelete()"
+        [disabled]="isLoading()"
+        class="delete-button"
+      >
+        <mat-icon>delete</mat-icon>
+        מחיקה
+      </button>
+    }
+    <div class="spacer"></div>
+    <button mat-button (click)="onCancel()" [disabled]="isLoading()">ביטול</button>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="onSubmit()"
+      [disabled]="isLoading() || form.invalid"
+    >
+      @if (isLoading()) {
+        <mat-icon class="spinning">sync</mat-icon>
+      } @else {
+        {{ isEditMode ? 'שמירה' : 'יצירה' }}
+      }
+    </button>
+  </mat-dialog-actions>
+</div>

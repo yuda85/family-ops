@@ -128,6 +128,7 @@ import { FamilyService } from '../../../core/family/family.service';
       gap: 0.5rem;
       text-decoration: none;
       color: var(--text-primary);
+      font-family: var(--font-family-display);
       font-weight: 600;
       font-size: 1.125rem;
 
@@ -141,6 +142,8 @@ import { FamilyService } from '../../../core/family/family.service';
     }
 
     .logo-text {
+      font-family: var(--font-family-display);
+
       @media (max-width: 480px) {
         display: none;
       }
@@ -153,6 +156,7 @@ import { FamilyService } from '../../../core/family/family.service';
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 500;
+      font-family: var(--font-family-hebrew);
 
       @media (max-width: 600px) {
         display: none;
@@ -164,12 +168,12 @@ import { FamilyService } from '../../../core/family/family.service';
       height: 32px;
       border-radius: 50%;
       background: var(--color-primary);
-      color: white;
+      color: var(--text-on-primary);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 600;
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
     }
 
     .menu-header {
@@ -177,16 +181,19 @@ import { FamilyService } from '../../../core/family/family.service';
       display: flex;
       flex-direction: column;
       gap: 0.25rem;
+      font-family: var(--font-family-hebrew);
     }
 
     .menu-user-name {
       font-weight: 500;
       color: var(--text-primary);
+      font-family: var(--font-family-hebrew);
     }
 
     .menu-user-email {
       font-size: 0.75rem;
       color: var(--text-secondary);
+      font-family: var(--font-family-hebrew);
     }
 
     mat-divider {

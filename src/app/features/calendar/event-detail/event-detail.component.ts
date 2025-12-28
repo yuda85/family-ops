@@ -7,19 +7,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
   selector: 'app-event-detail',
   standalone: true,
   imports: [CommonModule, EmptyStateComponent],
-  template: `
-    <div class="event-detail-page">
-      <app-empty-state
-        icon="event"
-        title="פרטי אירוע"
-        description="תצוגת פרטי האירוע תהיה זמינה בקרוב"
-      ></app-empty-state>
-    </div>
-  `,
-  styles: [`
-    .event-detail-page {
-      padding: 2rem;
-    }
-  `]
+  templateUrl: './event-detail.component.html',
+  styleUrl: './event-detail.component.scss',
 })
 export class EventDetailComponent {}
