@@ -19,7 +19,13 @@ export const shoppingRoutes: Routes = [
     path: 'staples',
     loadComponent: () =>
       import('./staples/staples.component').then((m) => m.StaplesComponent),
-    title: 'מוצרים קבועים - FamilyOps',
+    title: 'מועדפים - FamilyOps',
+  },
+  {
+    path: 'history',
+    loadComponent: () =>
+      import('./history/history-view.component').then((m) => m.HistoryViewComponent),
+    title: 'היסטוריית קניות - FamilyOps',
   },
 ];
 

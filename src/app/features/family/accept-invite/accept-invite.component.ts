@@ -38,6 +38,7 @@ export class AcceptInviteComponent implements OnInit {
   isAccepting = signal(false);
   isAccepted = signal(false);
   error = signal<string | null>(null);
+  needsAuth = signal(false);
   private acceptedFamilyId: string | null = null;
 
   roleLabels: Record<string, string> = {
@@ -54,6 +55,13 @@ export class AcceptInviteComponent implements OnInit {
     const inviteId = this.route.snapshot.paramMap.get('inviteId');
     if (!inviteId) {
       this.error.set('קישור הזמנה לא תקין');
+      this.isLoading.set(false);
+      return;
+    }
+
+    // If user is not authenticated, show sign-in prompt instead of loading
+    if (!this.authService.isAuthenticated()) {
+      this.needsAuth.set(true);
       this.isLoading.set(false);
       return;
     }
@@ -105,12 +113,13 @@ export class AcceptInviteComponent implements OnInit {
     });
   }
 
-  async signInAndAccept(): Promise<void> {
-    const invite = this.invite();
-    if (!invite) return;
+  signInAndAccept(): void {
+    // Get invite ID from route (works even if invite wasn't loaded yet)
+    const inviteId = this.route.snapshot.paramMap.get('inviteId');
+    if (!inviteId) return;
 
-    // Store invite ID in session storage to accept after login
-    sessionStorage.setItem('pendingInviteId', invite.id);
+    // Store invite ID in session storage to redirect back after login
+    sessionStorage.setItem('pendingInviteId', inviteId);
 
     // Redirect to login
     this.router.navigate(['/auth/login']);

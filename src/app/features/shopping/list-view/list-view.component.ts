@@ -1,28 +1,20 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-
-interface ShoppingItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity?: number;
-  unit?: string;
-  checked: boolean;
-}
-
-interface CategoryGroup {
-  category: string;
-  categoryLabel: string;
-  items: ShoppingItem[];
-  isCollapsed: boolean;
-}
+import { ShoppingService } from '../shopping.service';
+import { CatalogService } from '../catalog.service';
+import { ShoppingListItem, CategoryGroup, getUnitMeta } from '../shopping.models';
+import { ItemPickerComponent } from '../components/item-picker/item-picker.component';
+import { QuickAddComponent } from '../components/quick-add/quick-add.component';
 
 @Component({
   selector: 'app-list-view',
@@ -34,7 +26,11 @@ interface CategoryGroup {
     MatIconModule,
     MatCheckboxModule,
     MatChipsModule,
+    MatDialogModule,
+    MatProgressSpinnerModule,
+    MatSnackBarModule,
     EmptyStateComponent,
+    QuickAddComponent,
   ],
   template: `
     <div class="shopping-page">
@@ -44,9 +40,9 @@ interface CategoryGroup {
           <div class="header-actions">
             <button mat-stroked-button routerLink="staples">
               <mat-icon>star</mat-icon>
-              מוצרים קבועים
+              מועדפים
             </button>
-            @if (hasItems()) {
+            @if (shoppingService.hasItems()) {
               <button mat-flat-button color="primary" routerLink="supermarket/main">
                 <mat-icon>shopping_basket</mat-icon>
                 מצב סופר
@@ -55,23 +51,46 @@ interface CategoryGroup {
           </div>
         </div>
 
-        @if (hasItems()) {
-          <div class="progress-bar">
-            <div class="progress" [style.width.%]="getProgress()"></div>
+        @if (shoppingService.hasItems()) {
+          <div class="progress-section">
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="shoppingService.progress()"></div>
+            </div>
+            <div class="progress-info">
+              <span class="progress-text">{{ shoppingService.checkedCount() }} מתוך {{ shoppingService.totalCount() }} פריטים</span>
+              <span class="estimated-total">סה"כ משוער: ₪{{ shoppingService.estimatedTotal() | number:'1.0-0' }}</span>
+            </div>
           </div>
-          <p class="progress-text">{{ getCheckedCount() }} מתוך {{ getTotalCount() }} פריטים</p>
         }
       </header>
 
-      @if (hasItems()) {
+      <!-- Add Items Bar - Always visible -->
+      @if (!shoppingService.isLoading()) {
+        <div class="add-items-bar">
+          <app-quick-add (itemAdded)="onItemAdded($any($event))"></app-quick-add>
+          <button mat-flat-button color="primary" class="catalog-btn" (click)="openCatalog()">
+            <mat-icon>list_alt</mat-icon>
+            קטלוג
+          </button>
+        </div>
+      }
+
+      @if (shoppingService.isLoading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>טוען רשימה...</p>
+        </div>
+      } @else if (shoppingService.hasItems()) {
         <div class="category-groups">
-          @for (group of categoryGroups(); track group.category) {
-            <div class="category-group" [class.collapsed]="group.isCollapsed">
+          @for (group of shoppingService.groupedItems(); track group.category) {
+            <div class="category-group" [class.collapsed]="group.isCollapsed" [class.complete]="group.isComplete">
               <button class="category-header" (click)="toggleCategory(group)">
                 <div class="category-info">
-                  <mat-icon>{{ getCategoryIcon(group.category) }}</mat-icon>
-                  <span class="category-name">{{ group.categoryLabel }}</span>
-                  <span class="category-count">{{ group.items.length }}</span>
+                  <mat-icon [style.color]="group.categoryMeta.color">{{ group.categoryMeta.icon }}</mat-icon>
+                  <span class="category-name">{{ group.categoryMeta.labelHe }}</span>
+                  <span class="category-count" [class.all-checked]="group.isComplete">
+                    {{ getCheckedCount(group) }}/{{ group.items.length }}
+                  </span>
                 </div>
                 <mat-icon class="chevron">
                   {{ group.isCollapsed ? 'expand_more' : 'expand_less' }}
@@ -87,10 +106,15 @@ interface CategoryGroup {
                         (change)="toggleItem(item)"
                         color="primary"
                       ></mat-checkbox>
-                      <span class="item-name">{{ item.name }}</span>
-                      @if (item.quantity) {
-                        <span class="item-quantity">{{ item.quantity }} {{ item.unit ?? '' }}</span>
-                      }
+                      <div class="item-content">
+                        <span class="item-name">{{ item.name }}</span>
+                        @if (item.quantity && item.quantity > 0) {
+                          <span class="item-quantity">{{ item.quantity }} {{ getUnitLabel(item.unit) }}</span>
+                        }
+                        @if (item.estimatedPrice > 0) {
+                          <span class="item-price">₪{{ item.estimatedPrice * item.quantity | number:'1.0-0' }}</span>
+                        }
+                      </div>
                       <button mat-icon-button class="delete-btn" (click)="removeItem(item)">
                         <mat-icon>close</mat-icon>
                       </button>
@@ -102,7 +126,7 @@ interface CategoryGroup {
           }
         </div>
 
-        @if (getCheckedCount() > 0) {
+        @if (shoppingService.hasCheckedItems()) {
           <button mat-button class="clear-checked" (click)="clearChecked()">
             <mat-icon>delete_sweep</mat-icon>
             נקה פריטים מסומנים
@@ -112,24 +136,49 @@ interface CategoryGroup {
         <app-empty-state
           icon="shopping_cart"
           title="הרשימה ריקה"
-          description="הוסיפו פריטים לרשימת הקניות שלכם"
-          actionLabel="הוסף פריטים"
-          actionIcon="add"
-          (action)="openCatalog()"
+          description="השתמשו בשורת החיפוש למעלה או לחצו על 'קטלוג' להוספת פריטים"
         ></app-empty-state>
       }
-
-      <button class="fab" mat-fab color="primary" (click)="openCatalog()">
-        <mat-icon>add</mat-icon>
-      </button>
     </div>
   `,
   styles: [`
     .shopping-page {
       display: flex;
       flex-direction: column;
-      gap: 1.5rem;
-      padding-bottom: 80px;
+      gap: 1rem;
+    }
+
+    .add-items-bar {
+      display: flex;
+      gap: 0.5rem;
+      align-items: stretch;
+
+      app-quick-add {
+        flex: 1;
+      }
+
+      .catalog-btn {
+        flex-shrink: 0;
+        height: 56px;
+
+        mat-icon {
+          margin-inline-end: 0.25rem;
+        }
+
+        @media (max-width: 480px) {
+          min-width: auto;
+          padding: 0 0.75rem;
+
+          mat-icon {
+            margin-inline-end: 0;
+          }
+
+          // Hide text on small screens
+          span:not(.mat-mdc-button-touch-target) {
+            display: none;
+          }
+        }
+      }
     }
 
     .page-header {
@@ -168,12 +217,15 @@ interface CategoryGroup {
       }
     }
 
+    .progress-section {
+      margin-top: 1rem;
+    }
+
     .progress-bar {
       height: 8px;
       background: var(--surface-secondary);
       border-radius: 4px;
       overflow: hidden;
-      margin-top: 1rem;
 
       .progress {
         height: 100%;
@@ -183,10 +235,36 @@ interface CategoryGroup {
       }
     }
 
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+
     .progress-text {
       font-size: 0.75rem;
       color: var(--text-secondary);
-      margin: 0.5rem 0 0;
+    }
+
+    .estimated-total {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      gap: 1rem;
+
+      p {
+        color: var(--text-secondary);
+        margin: 0;
+      }
     }
 
     .category-groups {
@@ -200,6 +278,12 @@ interface CategoryGroup {
       border: 1px solid var(--border-subtle);
       border-radius: 1rem;
       overflow: hidden;
+      transition: all 0.2s ease;
+
+      &.complete {
+        border-color: var(--color-success);
+        background: color-mix(in srgb, var(--color-success) 5%, var(--surface-primary));
+      }
     }
 
     .category-header {
@@ -223,7 +307,9 @@ interface CategoryGroup {
         gap: 0.75rem;
 
         mat-icon {
-          color: var(--color-primary);
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
         }
 
         .category-name {
@@ -232,12 +318,17 @@ interface CategoryGroup {
         }
 
         .category-count {
-          background: var(--color-primary-alpha);
-          color: var(--color-primary);
+          background: var(--surface-tertiary);
+          color: var(--text-secondary);
           padding: 0.125rem 0.5rem;
           border-radius: 9999px;
           font-size: 0.75rem;
           font-weight: 500;
+
+          &.all-checked {
+            background: var(--color-success);
+            color: white;
+          }
         }
       }
 
@@ -271,10 +362,21 @@ interface CategoryGroup {
           text-decoration: line-through;
           color: var(--text-tertiary);
         }
+
+        .item-price {
+          color: var(--text-tertiary);
+        }
+      }
+
+      .item-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
       }
 
       .item-name {
-        flex: 1;
         font-size: 0.9375rem;
         color: var(--text-primary);
       }
@@ -283,8 +385,15 @@ interface CategoryGroup {
         font-size: 0.75rem;
         color: var(--text-secondary);
         background: var(--surface-secondary);
-        padding: 0.25rem 0.5rem;
+        padding: 0.125rem 0.5rem;
         border-radius: 0.5rem;
+      }
+
+      .item-price {
+        font-size: 0.75rem;
+        color: var(--color-primary);
+        font-weight: 500;
+        margin-inline-start: auto;
       }
 
       .delete-btn {
@@ -311,132 +420,73 @@ interface CategoryGroup {
         margin-inline-end: 0.5rem;
       }
     }
-
-    .fab {
-      position: fixed;
-      bottom: calc(64px + 1rem);
-      inset-inline-end: 1rem;
-      z-index: 100;
-
-      @media (min-width: 768px) {
-        bottom: 1.5rem;
-        inset-inline-end: 1.5rem;
-      }
-    }
   `]
 })
-export class ListViewComponent {
-  // Demo data
-  categoryGroups = signal<CategoryGroup[]>([
-    {
-      category: 'vegetables',
-      categoryLabel: 'ירקות',
-      isCollapsed: false,
-      items: [
-        { id: '1', name: 'עגבניות', category: 'vegetables', quantity: 1, unit: 'ק"ג', checked: false },
-        { id: '2', name: 'מלפפונים', category: 'vegetables', quantity: 6, checked: true },
-        { id: '3', name: 'גזר', category: 'vegetables', checked: false },
-      ],
-    },
-    {
-      category: 'dairy',
-      categoryLabel: 'מוצרי חלב',
-      isCollapsed: false,
-      items: [
-        { id: '4', name: 'חלב', category: 'dairy', quantity: 2, unit: 'ליטר', checked: false },
-        { id: '5', name: 'גבינה צהובה', category: 'dairy', checked: false },
-      ],
-    },
-    {
-      category: 'pantry',
-      categoryLabel: 'מזווה',
-      isCollapsed: true,
-      items: [
-        { id: '6', name: 'אורז', category: 'pantry', quantity: 1, unit: 'ק"ג', checked: false },
-        { id: '7', name: 'שמן זית', category: 'pantry', checked: true },
-      ],
-    },
-  ]);
+export class ListViewComponent implements OnInit {
+  shoppingService = inject(ShoppingService);
+  private catalogService = inject(CatalogService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
 
-  categoryIcons: Record<string, string> = {
-    vegetables: 'eco',
-    fruits: 'nutrition',
-    dairy: 'egg_alt',
-    meat: 'kebab_dining',
-    pantry: 'kitchen',
-    frozen: 'ac_unit',
-    cleaning: 'cleaning_services',
-    personal: 'spa',
-    baby: 'child_care',
-    snacks: 'cookie',
-    drinks: 'local_bar',
-    other: 'more_horiz',
-  };
-
-  hasItems(): boolean {
-    return this.categoryGroups().some(g => g.items.length > 0);
-  }
-
-  getTotalCount(): number {
-    return this.categoryGroups().reduce((sum, g) => sum + g.items.length, 0);
-  }
-
-  getCheckedCount(): number {
-    return this.categoryGroups().reduce(
-      (sum, g) => sum + g.items.filter(i => i.checked).length,
-      0
-    );
-  }
-
-  getProgress(): number {
-    const total = this.getTotalCount();
-    if (total === 0) return 0;
-    return (this.getCheckedCount() / total) * 100;
-  }
-
-  getCategoryIcon(category: string): string {
-    return this.categoryIcons[category] ?? 'inventory_2';
+  async ngOnInit(): Promise<void> {
+    // Load catalog first, then shopping list - await both to ensure list is ready
+    await this.catalogService.loadCatalog();
+    await this.shoppingService.loadActiveList();
   }
 
   toggleCategory(group: CategoryGroup): void {
-    this.categoryGroups.update(groups =>
-      groups.map(g =>
-        g.category === group.category ? { ...g, isCollapsed: !g.isCollapsed } : g
-      )
-    );
+    this.shoppingService.toggleCategory(group.category);
   }
 
-  toggleItem(item: ShoppingItem): void {
-    this.categoryGroups.update(groups =>
-      groups.map(g => ({
-        ...g,
-        items: g.items.map(i =>
-          i.id === item.id ? { ...i, checked: !i.checked } : i
-        ),
-      }))
-    );
+  async toggleItem(item: ShoppingListItem): Promise<void> {
+    try {
+      await this.shoppingService.toggleItem(item.id);
+    } catch (error: any) {
+      this.snackBar.open(error.message || 'שגיאה', 'סגור', { duration: 3000 });
+    }
   }
 
-  removeItem(item: ShoppingItem): void {
-    this.categoryGroups.update(groups =>
-      groups.map(g => ({
-        ...g,
-        items: g.items.filter(i => i.id !== item.id),
-      })).filter(g => g.items.length > 0)
-    );
+  async removeItem(item: ShoppingListItem): Promise<void> {
+    try {
+      await this.shoppingService.removeItem(item.id);
+    } catch (error: any) {
+      this.snackBar.open(error.message || 'שגיאה', 'סגור', { duration: 3000 });
+    }
   }
 
-  clearChecked(): void {
-    this.categoryGroups.update(groups =>
-      groups.map(g => ({
-        ...g,
-        items: g.items.filter(i => !i.checked),
-      })).filter(g => g.items.length > 0)
-    );
+  async clearChecked(): Promise<void> {
+    try {
+      await this.shoppingService.clearCheckedItems();
+      this.snackBar.open('פריטים מסומנים נמחקו', '', { duration: 2000 });
+    } catch (error: any) {
+      this.snackBar.open(error.message || 'שגיאה', 'סגור', { duration: 3000 });
+    }
   }
 
   openCatalog(): void {
-    // TODO: Open catalog picker dialog
-    console.log('Open catalog picker');
+    const dialogRef = this.dialog.open(ItemPickerComponent, {
+      width: '100%',
+      maxWidth: '600px',
+      height: '80vh',
+      panelClass: 'item-picker-dialog',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        // Items were added
+      }
+    });
+  }
+
+  onItemAdded(itemName: string): void {
+    this.snackBar.open(`${itemName} נוסף לרשימה`, '', { duration: 2000 });
+  }
+
+  getUnitLabel(unit: string): string {
+    return getUnitMeta(unit as any).shortHe;
+  }
+
+  getCheckedCount(group: CategoryGroup): number {
+    return group.items.filter(i => i.checked).length;
   }
 }

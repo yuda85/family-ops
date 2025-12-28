@@ -5,6 +5,16 @@
         <mat-spinner diameter="48"></mat-spinner>
         <p>טוען פרטי הזמנה...</p>
       </div>
+    } @else if (needsAuth()) {
+      <div class="auth-required-state">
+        <mat-icon>family_restroom</mat-icon>
+        <h2>הזמנה למשפחה</h2>
+        <p>יש להתחבר כדי לצפות ולקבל את ההזמנה</p>
+        <button mat-flat-button color="primary" (click)="signInAndAccept()">
+          <mat-icon>login</mat-icon>
+          התחבר כדי להמשיך
+        </button>
+      </div>
     } @else if (error()) {
       <div class="error-state">
         <mat-icon>error_outline</mat-icon>

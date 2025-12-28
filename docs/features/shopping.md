@@ -1,15 +1,18 @@
 # Shopping Feature
 
-Smart shopping lists with categories, supermarket mode, and recurring staples.
+Smart shopping lists with real-time sync, 200+ Israeli item catalog, supermarket mode, favorites, budget tracking, and celebration animations.
 
 ## Overview
 
 The shopping feature provides:
-- Categorized shopping lists
-- Progress tracking
-- Supermarket mode for in-store use
-- Recurring staples management
-- Shared lists for the family
+- **Real-time sync** across all family members
+- **200+ item catalog** with Hebrew names and estimated prices
+- **Smart categorization** - auto-categorize items by keywords
+- **Supermarket mode** - optimized in-store experience with large touch targets
+- **Favorites system** - quick access to frequently bought items
+- **Budget tracking** - compare estimated vs actual costs
+- **Shopping history** - track completed trips and spending
+- **Confetti celebrations** - fun feedback when completing categories/lists
 
 ## User Flow
 
@@ -20,18 +23,30 @@ The shopping feature provides:
 │                                                          │
 │  /app/shopping                                          │
 │  ├── List View (default)                                │
-│  │   ├── View items by category                         │
-│  │   ├── Check/uncheck items                            │
-│  │   ├── Add items (from catalog or custom)             │
+│  │   ├── View items grouped by category                 │
+│  │   ├── Check/uncheck items with real-time sync        │
+│  │   ├── Quick-add with autocomplete                    │
+│  │   ├── Add from catalog picker                        │
+│  │   ├── See progress bar and estimated total           │
 │  │   └── Clear checked items                            │
 │  │                                                      │
 │  ├── /shopping/supermarket/:id                          │
-│  │   └── Large touch targets                            │
-│  │   └── One-tap check-off                              │
+│  │   ├── Large touch targets (64px+ height)             │
+│  │   ├── One-tap check-off with swipe                   │
+│  │   ├── Screen stays on (Wake Lock API)                │
+│  │   ├── Quick undo (last 5 actions)                    │
+│  │   ├── Confetti on category/list completion           │
+│  │   └── Completion dialog with cost comparison         │
 │  │                                                      │
-│  └── /shopping/staples                                  │
-│      └── Manage recurring items                         │
-│      └── Quick-add to list                              │
+│  ├── /shopping/staples (Favorites)                      │
+│  │   ├── View and manage favorite items                 │
+│  │   ├── Add/remove favorites                           │
+│  │   └── Quick-add all favorites to list                │
+│  │                                                      │
+│  └── /shopping/history                                  │
+│      ├── View completed shopping trips                  │
+│      ├── Monthly spending summaries                     │
+│      └── Estimated vs actual cost comparison            │
 │                                                          │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -42,257 +57,441 @@ The shopping feature provides:
 |------|-----------|-------------|
 | `/app/shopping` | ListViewComponent | Main shopping list |
 | `/app/shopping/supermarket/:id` | SupermarketModeComponent | In-store mode |
-| `/app/shopping/staples` | StaplesComponent | Recurring items |
+| `/app/shopping/staples` | StaplesComponent | Favorites management |
+| `/app/shopping/history` | HistoryViewComponent | Shopping history |
 
-## Components
+## Architecture
 
-### List View
-**Path**: `src/app/features/shopping/list-view/list-view.component.ts`
+### Services
 
-Main shopping list display.
+| Service | Purpose |
+|---------|---------|
+| `ShoppingService` | Main CRUD, real-time sync, supermarket mode state |
+| `CatalogService` | Catalog management, search, smart categorization |
+| `FavoritesService` | User favorites stored per-user |
+| `ShoppingHistoryService` | Completed trips, spending analytics |
+| `ConfettiService` | Celebration animations |
 
-**Features**:
-- Items grouped by category
-- Collapsible category sections
-- Checkbox for each item
-- Progress bar showing completion
-- Delete individual items
-- Clear all checked items
-- FAB to add items
+### Components
 
-**Progress Calculation**:
-```typescript
-readonly progress = computed(() => {
-  const items = this.items();
-  if (items.length === 0) return 0;
-  const checked = items.filter(i => i.checked).length;
-  return Math.round((checked / items.length) * 100);
-});
-```
-
-**Category Grouping**:
-```typescript
-readonly groupedItems = computed(() => {
-  const items = this.items();
-  const groups: Map<string, ShoppingItem[]> = new Map();
-
-  for (const item of items) {
-    const category = item.category;
-    if (!groups.has(category)) {
-      groups.set(category, []);
-    }
-    groups.get(category)!.push(item);
-  }
-
-  return groups;
-});
-```
-
-### Catalog Picker (Planned)
-**Path**: `src/app/features/shopping/catalog-picker/catalog-picker.component.ts`
-
-Browse and select items from catalog.
-
-**Planned Features**:
-- Search by Hebrew name
-- Browse by category
-- Recently used items
-- Custom item entry
-
-### Supermarket Mode (Planned)
-**Path**: `src/app/features/shopping/supermarket-mode/supermarket-mode.component.ts`
-
-Optimized for in-store use.
-
-**Planned Features**:
-- Large touch targets
-- One-tap check-off
-- Category sections
-- Screen stays on
-- Quick undo
-
-### Staples Management (Planned)
-**Path**: `src/app/features/shopping/staples/staples.component.ts`
-
-Manage recurring items.
-
-**Planned Features**:
-- Add items to staples list
-- Default quantities
-- Quick-add all staples to current list
-- Edit/remove staples
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `ListViewComponent` | `list-view/` | Main shopping list display |
+| `SupermarketModeComponent` | `supermarket-mode/` | In-store optimized view |
+| `StaplesComponent` | `staples/` | Favorites management |
+| `HistoryViewComponent` | `history/` | Shopping history view |
+| `QuickAddComponent` | `components/quick-add/` | Autocomplete add input |
+| `ItemPickerComponent` | `components/item-picker/` | Full catalog browser dialog |
+| `QuantityEditorComponent` | `components/quantity-editor/` | Inline quantity/price editing |
+| `CompletionDialogComponent` | `components/completion-dialog/` | End shopping with cost comparison |
+| `ConfettiComponent` | `components/confetti/` | CSS-based confetti animations |
 
 ## Data Models
-
-### ShoppingItem
-```typescript
-interface ShoppingItem {
-  id: string;
-  catalogItemId?: string;    // Reference to catalog item
-  customName?: string;       // For custom items
-  name: string;              // Display name (from catalog or custom)
-  category: ShoppingCategory;
-  quantity?: number;
-  unit?: string;
-  note?: string;
-  checked: boolean;
-  checkedAt?: Timestamp;
-  checkedBy?: string;
-  createdAt: Timestamp;
-  createdBy: string;
-}
-```
 
 ### ShoppingCategory
 ```typescript
 type ShoppingCategory =
-  | 'vegetables'    // ירקות ופירות
-  | 'dairy'         // מוצרי חלב
-  | 'meat'          // בשר ודגים
-  | 'bakery'        // מאפים ולחם
-  | 'pantry'        // מזווה
-  | 'frozen'        // קפואים
-  | 'drinks'        // משקאות
-  | 'snacks'        // חטיפים
-  | 'cleaning'      // ניקיון
-  | 'personal'      // טיפוח
-  | 'baby'          // תינוקות
-  | 'other';        // אחר
+  | 'vegetables'   // ירקות
+  | 'fruits'       // פירות
+  | 'dairy'        // מוצרי חלב
+  | 'meat'         // בשר ודגים
+  | 'bakery'       // מאפים ולחם
+  | 'pantry'       // מזווה
+  | 'frozen'       // קפואים
+  | 'drinks'       // משקאות
+  | 'snacks'       // חטיפים
+  | 'cleaning'     // ניקיון
+  | 'personal'     // טיפוח
+  | 'baby';        // תינוקות
 ```
 
-### Category Metadata
+### ShoppingUnit
 ```typescript
-const SHOPPING_CATEGORIES = {
-  vegetables: {
-    label: 'ירקות ופירות',
-    icon: 'local_florist',
-    order: 1
-  },
-  dairy: {
-    label: 'מוצרי חלב',
-    icon: 'egg',
-    order: 2
-  },
-  meat: {
-    label: 'בשר ודגים',
-    icon: 'restaurant',
-    order: 3
-  },
-  bakery: {
-    label: 'מאפים ולחם',
-    icon: 'bakery_dining',
-    order: 4
-  },
-  pantry: {
-    label: 'מזווה',
-    icon: 'kitchen',
-    order: 5
-  },
-  frozen: {
-    label: 'קפואים',
-    icon: 'ac_unit',
-    order: 6
-  },
-  drinks: {
-    label: 'משקאות',
-    icon: 'local_cafe',
-    order: 7
-  },
-  snacks: {
-    label: 'חטיפים',
-    icon: 'cookie',
-    order: 8
-  },
-  cleaning: {
-    label: 'ניקיון',
-    icon: 'cleaning_services',
-    order: 9
-  },
-  personal: {
-    label: 'טיפוח',
-    icon: 'spa',
-    order: 10
-  },
-  baby: {
-    label: 'תינוקות',
-    icon: 'child_friendly',
-    order: 11
-  },
-  other: {
-    label: 'אחר',
-    icon: 'more_horiz',
-    order: 12
-  }
-};
+type ShoppingUnit = 'kg' | 'units' | 'liter' | 'pack' | 'gram' | 'ml';
+```
+
+### CatalogItem
+```typescript
+interface CatalogItem {
+  id: string;
+  nameHe: string;                    // Hebrew name
+  category: ShoppingCategory;
+  defaultUnit: ShoppingUnit;
+  defaultQuantity: number;
+  estimatedPrice: number;            // Price in shekels (updatable by family)
+  keywords: string[];                // For search and categorization
+  lastPriceUpdate?: Timestamp;
+  lastPriceUpdatedBy?: string;
+}
 ```
 
 ### ShoppingList
 ```typescript
 interface ShoppingList {
   id: string;
+  familyId: string;
   name: string;
-  isActive: boolean;
-  items: ShoppingItem[];
+  status: 'active' | 'shopping' | 'completed';
+  estimatedTotal: number;
+  actualTotal?: number;
   createdBy: string;
   createdAt: Timestamp;
-  updatedAt: Timestamp;
-  updatedBy: string;
+  completedAt?: Timestamp;
+  activeShoppers: string[];          // Users currently in supermarket mode
 }
 ```
 
-### StaplesItem
+### ShoppingListItem
 ```typescript
-interface StaplesItem {
-  catalogItemId?: string;
-  customName?: string;
-  category: ShoppingCategory;
-  defaultQuantity?: number;
-  unit?: string;
-}
-```
-
-### CatalogItem (Global)
-```typescript
-interface CatalogItem {
+interface ShoppingListItem {
   id: string;
-  nameHe: string;
+  listId: string;
+  catalogItemId?: string;            // Reference to catalog item
+  name: string;
   category: ShoppingCategory;
-  synonyms?: string[];    // Alternative names for search
-  icon?: string;
-  order: number;          // Display order within category
+  quantity: number;
+  unit: ShoppingUnit;
+  estimatedPrice: number;
+  actualPrice?: number;
+  checked: boolean;
+  checkedBy?: string;
+  orderInCategory: number;
+  addedBy: string;
+  addedAt: Timestamp;
+  note?: string;
+}
+```
+
+### UserFavorite
+```typescript
+interface UserFavorite {
+  id: string;
+  userId: string;
+  catalogItemId: string;
+  customQuantity?: number;
+  useCount: number;
+  lastUsedAt?: Timestamp;
+}
+```
+
+### ShoppingTrip
+```typescript
+interface ShoppingTrip {
+  id: string;
+  familyId: string;
+  completedAt: Timestamp;
+  completedBy: string;
+  totalItems: number;
+  estimatedTotal: number;
+  actualTotal: number;
+  items: ShoppingTripItem[];         // Snapshot of items
+}
+```
+
+### PurchasePattern
+```typescript
+interface PurchasePattern {
+  id: string;
+  familyId: string;
+  catalogItemId: string;
+  itemName: string;
+  purchaseCount: number;
+  lastPurchased: Timestamp;
+  averageIntervalDays: number;
+}
+```
+
+### CategoryGroup
+```typescript
+interface CategoryGroup {
+  category: ShoppingCategory;
+  label: string;
+  icon: string;
+  items: ShoppingListItem[];
+  isComplete: boolean;
 }
 ```
 
 ## Firestore Structure
 
-### Shopping Lists Subcollection
 ```
-families/{familyId}/shoppingLists/{listId}
-├── name: string
-├── isActive: boolean
-├── items: ShoppingItem[]     // Embedded array for performance
-├── createdBy: string
-├── createdAt: Timestamp
-├── updatedAt: Timestamp
-└── updatedBy: string
+/families/{familyId}/
+├── shoppingLists/{listId}
+│   ├── name: string
+│   ├── status: 'active' | 'shopping' | 'completed'
+│   ├── estimatedTotal: number
+│   ├── actualTotal?: number
+│   ├── createdBy: string
+│   ├── createdAt: Timestamp
+│   ├── completedAt?: Timestamp
+│   └── activeShoppers: string[]
+│
+├── shoppingListItems/{itemId}       # Subcollection for real-time sync
+│   ├── listId: string
+│   ├── catalogItemId?: string
+│   ├── name: string
+│   ├── category: ShoppingCategory
+│   ├── quantity: number
+│   ├── unit: ShoppingUnit
+│   ├── estimatedPrice: number
+│   ├── actualPrice?: number
+│   ├── checked: boolean
+│   ├── checkedBy?: string
+│   ├── orderInCategory: number
+│   ├── addedBy: string
+│   ├── addedAt: Timestamp
+│   └── note?: string
+│
+├── shoppingHistory/{tripId}
+│   ├── completedAt: Timestamp
+│   ├── completedBy: string
+│   ├── totalItems: number
+│   ├── estimatedTotal: number
+│   ├── actualTotal: number
+│   └── items: ShoppingTripItem[]    # Snapshot
+│
+├── purchasePatterns/{patternId}
+│   ├── catalogItemId: string
+│   ├── itemName: string
+│   ├── purchaseCount: number
+│   ├── lastPurchased: Timestamp
+│   └── averageIntervalDays: number
+│
+└── catalog/{itemId}                  # Family's catalog with updatable prices
+    ├── nameHe: string
+    ├── category: ShoppingCategory
+    ├── defaultUnit: ShoppingUnit
+    ├── defaultQuantity: number
+    ├── estimatedPrice: number
+    ├── keywords: string[]
+    ├── lastPriceUpdate?: Timestamp
+    └── lastPriceUpdatedBy?: string
+
+/users/{userId}/
+└── shoppingFavorites/{favoriteId}
+    ├── catalogItemId: string
+    ├── customQuantity?: number
+    ├── useCount: number
+    └── lastUsedAt?: Timestamp
 ```
 
-### Staples Subcollection
-```
-families/{familyId}/staples/{staplesId}
-├── items: StaplesItem[]
-└── updatedAt: Timestamp
+## Category Metadata
+
+```typescript
+const CATEGORY_META: Record<ShoppingCategory, { label: string; icon: string; order: number }> = {
+  vegetables: { label: 'ירקות', icon: 'grass', order: 1 },
+  fruits: { label: 'פירות', icon: 'nutrition', order: 2 },
+  dairy: { label: 'מוצרי חלב', icon: 'egg', order: 3 },
+  meat: { label: 'בשר ודגים', icon: 'restaurant', order: 4 },
+  bakery: { label: 'מאפים ולחם', icon: 'bakery_dining', order: 5 },
+  pantry: { label: 'מזווה', icon: 'kitchen', order: 6 },
+  frozen: { label: 'קפואים', icon: 'ac_unit', order: 7 },
+  drinks: { label: 'משקאות', icon: 'local_cafe', order: 8 },
+  snacks: { label: 'חטיפים', icon: 'cookie', order: 9 },
+  cleaning: { label: 'ניקיון', icon: 'cleaning_services', order: 10 },
+  personal: { label: 'טיפוח', icon: 'spa', order: 11 },
+  baby: { label: 'תינוקות', icon: 'child_friendly', order: 12 },
+};
 ```
 
-### Global Catalog (Read-only)
+## Smart Categorization
+
+Items are auto-categorized using keyword matching:
+
+```typescript
+const CATEGORY_KEYWORDS: Partial<Record<ShoppingCategory, string[]>> = {
+  dairy: ['חלב', 'גבינה', 'יוגורט', 'קוטג', 'שמנת', 'חמאה', 'לבן', 'ביצ'],
+  vegetables: ['עגבני', 'מלפפון', 'גזר', 'בצל', 'פלפל', 'חסה', 'כרוב', 'קישוא'],
+  fruits: ['תפוח', 'בננה', 'תפוז', 'אבטיח', 'ענבים', 'אגס', 'מנגו', 'קיווי'],
+  meat: ['עוף', 'בקר', 'טחון', 'שניצל', 'נקניק', 'דג', 'סלמון', 'טונה'],
+  bakery: ['לחם', 'פיתה', 'חלה', 'לחמני', 'באגט', 'עוג'],
+  pantry: ['אורז', 'פסטה', 'שמן', 'סוכר', 'קמח', 'מלח', 'רוטב', 'שימור'],
+  frozen: ['קפוא', 'גלידה', 'פיצה קפואה', 'ירקות קפואים'],
+  drinks: ['מים', 'קולה', 'מיץ', 'בירה', 'יין', 'קפה', 'תה'],
+  snacks: ['במבה', 'ביסלי', 'שוקולד', 'עוגי', 'ופל', 'חטיף', 'אגוז'],
+  cleaning: ['אקונומיקה', 'סבון', 'נייר טואלט', 'מגב', 'שקית'],
+  personal: ['שמפו', 'מברשת', 'משחת', 'דאודורנט', 'קרם'],
+  baby: ['חיתול', 'מגבון', 'פורמולה', 'מוצץ'],
+};
 ```
-shoppingCatalog/{itemId}
-├── nameHe: string
-├── category: ShoppingCategory
-├── synonyms?: string[]
-├── icon?: string
-└── order: number
+
+## Key Features
+
+### 1. Quick-Add with Autocomplete
+
+The quick-add component provides instant search across the 200+ item catalog:
+
+```typescript
+onSearchChange(query: string): void {
+  if (!query || query.trim().length === 0) {
+    this.suggestions.set([]);
+    return;
+  }
+  const results = this.catalogService.searchItems(query);
+  this.suggestions.set(results.slice(0, 8)); // Limit to 8 suggestions
+}
 ```
+
+### 2. Supermarket Mode
+
+Optimized for in-store use with:
+- **Large touch targets** (64px minimum height)
+- **Wake Lock API** to keep screen on
+- **Undo stack** for last 5 actions
+- **Swipe to check** items
+- **Confetti celebrations** on completion
+
+```typescript
+async enterSupermarketMode(): Promise<void> {
+  this.isSupermarketMode.set(true);
+
+  // Request wake lock
+  if ('wakeLock' in navigator) {
+    try {
+      this.wakeLock = await navigator.wakeLock.request('screen');
+    } catch (e) {
+      console.warn('Wake lock not available');
+    }
+  }
+}
+```
+
+### 3. Undo Stack
+
+Quick undo for accidental checks in supermarket mode:
+
+```typescript
+private undoStack: UndoAction[] = [];
+private readonly MAX_UNDO = 5;
+
+async quickCheck(itemId: string): Promise<void> {
+  const item = this.items().find(i => i.id === itemId);
+  if (!item) return;
+
+  // Save to undo stack
+  this.undoStack.push({ itemId, wasChecked: item.checked });
+  if (this.undoStack.length > this.MAX_UNDO) {
+    this.undoStack.shift();
+  }
+
+  await this.toggleItem(itemId);
+}
+
+async undoLastCheck(): Promise<void> {
+  const lastAction = this.undoStack.pop();
+  if (!lastAction) return;
+
+  await this.updateItem(lastAction.itemId, { checked: lastAction.wasChecked });
+}
+```
+
+### 4. Confetti Celebrations
+
+CSS-based confetti for fun feedback:
+
+```typescript
+// Small confetti when a category is completed
+celebrateCategory(): void {
+  this.isActive.set(true);
+  this.intensity.set('small');
+  setTimeout(() => this.isActive.set(false), 2000);
+}
+
+// Big confetti when the entire list is completed
+celebrateListComplete(): void {
+  this.isActive.set(true);
+  this.intensity.set('big');
+  setTimeout(() => this.isActive.set(false), 3000);
+}
+```
+
+### 5. Budget Tracking
+
+Compare estimated vs actual costs:
+
+```typescript
+readonly estimatedTotal = computed(() => {
+  return this.items().reduce((sum, item) => {
+    return sum + (item.estimatedPrice * item.quantity);
+  }, 0);
+});
+
+async completeShopping(actualTotal: number): Promise<void> {
+  const list = this.activeList();
+  if (!list) return;
+
+  // Save to history
+  await this.historyService.saveTrip({
+    listId: list.id,
+    items: this.items(),
+    estimatedTotal: this.estimatedTotal(),
+    actualTotal,
+  });
+
+  // Mark list as completed
+  await this.updateList(list.id, {
+    status: 'completed',
+    actualTotal,
+    completedAt: new Date(),
+  });
+}
+```
+
+### 6. Shopping History
+
+Track completed trips with spending analytics:
+
+```typescript
+readonly monthlySpending = computed(() => {
+  const trips = this.trips();
+  const monthly = new Map<string, { estimated: number; actual: number; count: number }>();
+
+  for (const trip of trips) {
+    const monthKey = trip.completedAt.toDate().toISOString().slice(0, 7);
+    const current = monthly.get(monthKey) || { estimated: 0, actual: 0, count: 0 };
+    monthly.set(monthKey, {
+      estimated: current.estimated + trip.estimatedTotal,
+      actual: current.actual + trip.actualTotal,
+      count: current.count + 1,
+    });
+  }
+
+  return monthly;
+});
+```
+
+## Catalog Data
+
+The catalog includes 200+ Israeli grocery items with Hebrew names and estimated prices:
+
+```typescript
+// Sample items from catalog-data.ts
+export const CATALOG_ITEMS: CatalogItem[] = [
+  // Dairy - מוצרי חלב
+  { id: 'milk-3', nameHe: 'חלב 3%', category: 'dairy', defaultUnit: 'liter', defaultQuantity: 1, estimatedPrice: 7, keywords: ['חלב'] },
+  { id: 'cottage', nameHe: "קוטג'", category: 'dairy', defaultUnit: 'units', defaultQuantity: 1, estimatedPrice: 8, keywords: ['קוטג', 'גבינה'] },
+
+  // Snacks - חטיפים
+  { id: 'bamba', nameHe: 'במבה', category: 'snacks', defaultUnit: 'pack', defaultQuantity: 1, estimatedPrice: 8, keywords: ['במבה', 'חטיף', 'אוסם'] },
+  { id: 'bisli', nameHe: 'ביסלי', category: 'snacks', defaultUnit: 'pack', defaultQuantity: 1, estimatedPrice: 8, keywords: ['ביסלי', 'חטיף', 'אוסם'] },
+
+  // ... 200+ more items
+];
+```
+
+Categories covered:
+- **ירקות (Vegetables)**: 25+ items
+- **פירות (Fruits)**: 20+ items
+- **מוצרי חלב (Dairy)**: 25+ items
+- **בשר ודגים (Meat & Fish)**: 20+ items
+- **מאפים ולחם (Bakery)**: 15+ items
+- **מזווה (Pantry)**: 35+ items
+- **קפואים (Frozen)**: 15+ items
+- **משקאות (Drinks)**: 20+ items
+- **חטיפים (Snacks)**: 15+ items
+- **ניקיון (Cleaning)**: 15+ items
+- **טיפוח (Personal Care)**: 15+ items
+- **תינוקות (Baby)**: 10+ items
 
 ## UI Components
 
@@ -300,19 +499,19 @@ shoppingCatalog/{itemId}
 ```
 ┌─────────────────────────────────────────┐
 │  רשימת קניות                           │
-│  ████████████░░░ 75%                   │
-│  [מצב סופר] [נקה מסומנים]              │
+│  ████████████░░░ 75%    סה"כ: ₪142     │
+│  [+ הוסף פריט]  [מצב סופר]             │
 └─────────────────────────────────────────┘
 ```
 
 ### Category Section
 ```
 ┌─────────────────────────────────────────┐
-│ 🥬 ירקות ופירות                   [▼]  │
+│ 🥬 ירקות                          [▼]  │
 ├─────────────────────────────────────────┤
-│ ☐ עגבניות          2 ק"ג         [🗑] │
-│ ☐ מלפפונים         1 ק"ג         [🗑] │
-│ ☑ תפוחים          3 יח'         [🗑] │
+│ ☐ עגבניות     2 ק"ג    ₪12       [🗑] │
+│ ☐ מלפפונים    1 ק"ג    ₪8        [🗑] │
+│ ☑ תפוחים     3 יח'    ₪15       [🗑] │
 └─────────────────────────────────────────┘
 ```
 
@@ -321,106 +520,27 @@ shoppingCatalog/{itemId}
 ┌─────────────────────────────────────────┐
 │                                         │
 │         עגבניות                        │
-│         2 ק"ג                          │
+│         2 ק"ג  •  ₪12                  │
 │                                         │
 │         [  ✓  ]                        │
 │                                         │
 └─────────────────────────────────────────┘
 ```
 
-## Current Implementation Status
-
-### Completed ✓
-- List view with category grouping
-- Checkbox toggle for items
-- Progress bar calculation
-- Delete individual items
-- Clear checked items
-- Collapsible categories
-- Responsive design
-- Demo data display
-
-### In Progress
-- Firestore integration
-- Real-time sync
-
-### Planned
-- Add item dialog
-- Catalog picker
-- Custom item entry
-- Supermarket mode
-- Staples management
-- Share list
-- Quantity editing
-- Sort by category order
-- Search/filter items
-
-## Usage Examples
-
-### Toggle Item (Current)
-```typescript
-toggleItem(item: ShoppingItem): void {
-  item.checked = !item.checked;
-}
+### Completion Dialog
 ```
-
-### Delete Item (Current)
-```typescript
-deleteItem(id: string): void {
-  const items = this.items();
-  const index = items.findIndex(i => i.id === id);
-  if (index > -1) {
-    items.splice(index, 1);
-  }
-}
-```
-
-### Clear Checked (Current)
-```typescript
-clearChecked(): void {
-  const unchecked = this.items().filter(i => !i.checked);
-  this.items.set(unchecked);
-}
-```
-
-### Add Item (Planned)
-```typescript
-async addItem(item: CreateItemData): Promise<void> {
-  const listId = this.activeListId();
-  await this.firestoreService.updateDocument(
-    `families/${familyId}/shoppingLists/${listId}`,
-    {
-      items: arrayUnion({
-        id: generateId(),
-        ...item,
-        checked: false,
-        createdAt: serverTimestamp(),
-        createdBy: userId
-      })
-    }
-  );
-}
-```
-
-### Add Staples to List (Planned)
-```typescript
-async addStaplesToList(listId: string): Promise<void> {
-  const staples = await this.getStaples();
-  const newItems = staples.map(s => ({
-    id: generateId(),
-    catalogItemId: s.catalogItemId,
-    customName: s.customName,
-    category: s.category,
-    quantity: s.defaultQuantity,
-    unit: s.unit,
-    checked: false
-  }));
-
-  await this.firestoreService.updateDocument(
-    `families/${familyId}/shoppingLists/${listId}`,
-    { items: arrayUnion(...newItems) }
-  );
-}
+┌─────────────────────────────────────────┐
+│         🎉 סיום קניות!                 │
+├─────────────────────────────────────────┤
+│                                         │
+│   סה"כ משוער:        ₪142              │
+│                                         │
+│   סה"כ בפועל:    [________]            │
+│                                         │
+│   הפרש: ₪8 פחות מהצפוי ✓               │
+│                                         │
+│         [ביטול]  [סיים קניות]          │
+└─────────────────────────────────────────┘
 ```
 
 ## Security Rules
@@ -432,34 +552,51 @@ match /families/{familyId}/shoppingLists/{listId} {
   allow write: if canWrite(familyId);
 }
 
-// Staples
-match /families/{familyId}/staples/{staplesId} {
+// Shopping List Items
+match /families/{familyId}/shoppingListItems/{itemId} {
   allow read: if isFamilyMember(familyId);
   allow write: if canWrite(familyId);
 }
 
-// Global Catalog (admin-only writes)
-match /shoppingCatalog/{itemId} {
-  allow read: if isAuthenticated();
-  allow write: if false;  // Admin via console only
+// Shopping History
+match /families/{familyId}/shoppingHistory/{tripId} {
+  allow read: if isFamilyMember(familyId);
+  allow create: if canWrite(familyId);
+  allow update, delete: if false; // History is immutable
+}
+
+// Family Catalog (updatable prices)
+match /families/{familyId}/catalog/{itemId} {
+  allow read: if isFamilyMember(familyId);
+  allow write: if canWrite(familyId);
+}
+
+// User Favorites
+match /users/{userId}/shoppingFavorites/{favoriteId} {
+  allow read, write: if request.auth.uid == userId;
 }
 ```
 
-## Sample Catalog Data
+## Implementation Status
 
-```json
-{
-  "items": [
-    { "nameHe": "חלב", "category": "dairy", "synonyms": ["חלב תנובה"] },
-    { "nameHe": "ביצים", "category": "dairy" },
-    { "nameHe": "לחם", "category": "bakery" },
-    { "nameHe": "עגבניות", "category": "vegetables" },
-    { "nameHe": "מלפפונים", "category": "vegetables" },
-    { "nameHe": "תפוחים", "category": "vegetables" },
-    { "nameHe": "עוף", "category": "meat" },
-    { "nameHe": "בשר טחון", "category": "meat" },
-    { "nameHe": "מים מינרליים", "category": "drinks" },
-    { "nameHe": "נייר טואלט", "category": "cleaning" }
-  ]
-}
-```
+### Completed
+- Real-time sync with Firestore
+- 200+ item catalog with Hebrew names and prices
+- Smart categorization by keywords
+- Quick-add with autocomplete
+- Item picker dialog (full catalog browser)
+- Quantity and price editing
+- Favorites/staples management
+- Supermarket mode with large touch targets
+- Wake Lock API for screen-on
+- Undo stack (last 5 actions)
+- Confetti celebrations
+- Shopping history view
+- Completion dialog with cost comparison
+- Budget tracking (estimated vs actual)
+- Monthly spending summaries
+
+### Planned
+- Drag & drop reordering
+- Smart suggestions based on purchase patterns
+- Active shoppers presence indicator
