@@ -158,6 +158,7 @@ export class MainLayoutComponent {
     { path: '/app/calendar', icon: 'calendar_month', label: 'יומן משפחתי' },
     { path: '/app/transportation', icon: 'directions_car', label: 'הסעות' },
     { path: '/app/shopping', icon: 'shopping_cart', label: 'רשימת קניות' },
+    { path: '/app/budget', icon: 'account_balance_wallet', label: 'תקציב' },
     { path: '/app/topics', icon: 'topic', label: 'נושאים חשובים' },
     { path: '/app/family/children', icon: 'child_care', label: 'הילדים' },
     { path: '/app/family/members', icon: 'group', label: 'חברי משפחה' },

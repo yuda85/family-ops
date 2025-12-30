@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Injectable, inject, signal, computed, OnDestroy, Injector } from '@angular/core';
 import { Timestamp } from 'firebase/firestore';
 import { Subscription } from 'rxjs';
 import { FirestoreService, where, orderBy } from '../../core/firebase/firestore.service';
@@ -26,6 +26,7 @@ export class ShoppingService implements OnDestroy {
   private firestoreService = inject(FirestoreService);
   private authService = inject(AuthService);
   private familyService = inject(FamilyService);
+  private injector = inject(Injector);
 
   // Subscriptions for real-time updates
   private listSubscription?: Subscription;
@@ -606,6 +607,17 @@ export class ShoppingService implements OnDestroy {
         activeShoppers: [],
       }
     );
+
+    // Link shopping trip to budget (groceries category)
+    try {
+      // Lazy load BudgetService to avoid circular dependency
+      const { BudgetService } = await import('../budget/budget.service');
+      const budgetService = this.injector.get(BudgetService);
+      await budgetService.linkShoppingTrip(tripId, data.actualTotal);
+    } catch (e) {
+      // Budget integration is optional - don't fail shopping completion
+      console.warn('Failed to link shopping trip to budget:', e);
+    }
 
     // Reset state
     this._activeList.set(null);

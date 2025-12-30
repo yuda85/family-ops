@@ -73,6 +73,10 @@ export const routes: Routes = [
         loadChildren: () => import('./features/shopping/shopping.routes'),
       },
       {
+        path: 'budget',
+        loadChildren: () => import('./features/budget/budget.routes'),
+      },
+      {
         path: 'topics',
         loadChildren: () => import('./features/topics/topics.routes'),
       },
