@@ -44,6 +44,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
       activityId: activity.id,
       childId: activity.childId,
       title: activity.title,
+      location: activity.location,
       startTime: activity.startTime,
       endTime: activity.endTime,
       departureTime: activity.departureTime,
@@ -76,6 +77,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
       overrideId: override.id,
       childId: override.childId ?? '',
       title: override.title ?? '',
+      location: override.location,
       startTime: override.startTime ?? '00:00',
       endTime: override.endTime,
       departureTime: override.departureTime,
@@ -107,6 +109,7 @@ function applyOverride(entry: DayEntry, override: Override): DayEntry {
         next.startTime = override.startTime;
       }
       if (override.endTime !== undefined) next.endTime = override.endTime;
+      if (override.location !== undefined) next.location = override.location;
       if (override.departureTime !== undefined) next.departureTime = override.departureTime;
       if (override.driverId !== undefined) next.driverId = override.driverId;
       // An explicit reschedule overrides a calendar-driven cancellation.

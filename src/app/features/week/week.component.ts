@@ -78,7 +78,7 @@ interface DayCard {
           >
             <span class="entry-time">{{ row.entry.startTime }}</span>
             <span class="entry-bar" [style.background]="row.childColor" aria-hidden="true"></span>
-            <span class="entry-title">{{ row.entry.title }} · {{ row.childName }}</span>
+            <span class="entry-title">{{ entryLabel(row) }}</span>
             @if (!row.entry.cancelled && row.entry.departureTime) {
               @if (row.driverName) {
                 <span class="driver" [class.mine]="row.isMine">{{ row.driverName }}</span>
@@ -350,6 +350,10 @@ export class WeekComponent {
 
   shift(days: number): void {
     this.weekStart.update((d) => addDays(d, days));
+  }
+
+  entryLabel(row: EntryRow): string {
+    return [row.entry.title, row.childName, row.entry.location].filter(Boolean).join(' · ');
   }
 
   memberName(id?: string | null): string | null {

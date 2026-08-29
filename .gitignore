@@ -41,3 +41,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# The real family schedule: children's names and where each of them is at a
+# given hour. Not for a public repository. seed/schedule.example.json shows
+# the shape.
+/seed/schedule.json

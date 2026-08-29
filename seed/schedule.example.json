@@ -1,0 +1,47 @@
+{
+  "_source": "Copy to seed/schedule.json and fill in. That file is gitignored on purpose.",
+  "_notes": [
+    "Departure times are deliberately absent. They are what drives the 'leave now' alerts, and guessing travel time would produce alerts that are wrong in exactly the way the app exists to prevent. Set them per activity in the app, or add them here and re-run.",
+    "Drivers are absent by the family's request - they are fixed per day and will be assigned in the app.",
+    "One activity that runs at different hours on different days is stored as separate templates, because a template holds a single time. גפן's התעמלות קרקע is therefore three entries.",
+    "A fourth child attends kindergarten only and has no activities; not seeded because the name was not given."
+  ],
+  "children": [
+    {
+      "id": "child-a",
+      "name": "שם",
+      "color": "coral",
+      "order": 0
+    },
+    {
+      "id": "child-b",
+      "name": "שם",
+      "color": "sky",
+      "order": 1
+    }
+  ],
+  "activities": [
+    {
+      "childId": "child-a",
+      "title": "שם החוג",
+      "location": "איפה",
+      "daysOfWeek": [
+        0,
+        3
+      ],
+      "startTime": "16:00",
+      "endTime": "17:30",
+      "departureTime": "15:35",
+      "drivers": {
+        "0": "<memberId>",
+        "3": "<memberId>"
+      },
+      "prepItems": [
+        {
+          "text": "מה לארוז",
+          "hoursBefore": 12
+        }
+      ]
+    }
+  ]
+}

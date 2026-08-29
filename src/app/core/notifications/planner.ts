@@ -136,6 +136,8 @@ function departureAlerts(
       const at = toMinutes(group[0].departureTime!);
       const names = group.map((e) => childName(data, e.childId)).filter(Boolean);
       const titles = group.map((e) => e.title).join(' ו');
+      const places = [...new Set(group.map((e) => e.location).filter(Boolean))].join(' ו');
+      const where = places ? ` · ${places}` : '';
       const who = names.length ? ` את ${names.join(' ו')}` : '';
       const groupKey = group.map((e) => e.id).join('+');
 
@@ -144,7 +146,7 @@ function departureAlerts(
           key: `${date}:departure-2h:${groupKey}`,
           userIds: [driverId],
           title: 'בעוד שעתיים יציאה',
-          body: `${group[0].departureTime} — ${titles}${who}`,
+          body: `${group[0].departureTime} — ${titles}${who}${where}`,
         });
       }
 
@@ -153,7 +155,7 @@ function departureAlerts(
           key: `${date}:departure-10m:${groupKey}`,
           userIds: [driverId],
           title: 'צא עכשיו',
-          body: `${titles}${who} · יציאה ${group[0].departureTime}`,
+          body: `${titles}${who}${where} · יציאה ${group[0].departureTime}`,
         });
       }
     }
@@ -211,7 +213,8 @@ function briefBody(day: DayView, data: PlannerData): string {
   for (const entry of live) {
     const driver = memberName(data, entry.driverId);
     const leave = entry.departureTime ? ` (יציאה ${entry.departureTime}${driver ? `, ${driver}` : ''})` : '';
-    lines.push(`${entry.startTime} ${entry.title} · ${childName(data, entry.childId)}${leave}`);
+    const place = entry.location ? ` · ${entry.location}` : '';
+    lines.push(`${entry.startTime} ${entry.title} · ${childName(data, entry.childId)}${place}${leave}`);
   }
 
   if (day.meal) {

@@ -52,6 +52,24 @@ npm run build      # production bundle
 בפיתוח יש מסכי תצוגה מקדימה עם נתוני דוגמה, בלי צורך בחשבון:
 `#/preview/today`, `#/preview/week`, `#/preview/activities`.
 
+## זריעת הלוז
+
+הלוז הקבוע נכנס פעם אחת מקובץ, ומשם נערך באפליקציה.
+
+```bash
+cp seed/schedule.example.json seed/schedule.json   # ולמלא
+npm run seed:dry                                    # בדיקה בלבד, בלי אישורים
+FIREBASE_SERVICE_ACCOUNT='{...}' npm run seed -- --family <familyId>
+```
+
+`seed/schedule.json` **לא נכנס לגיט**. הוא מכיל את שמות הילדים ואת השעות
+המדויקות שבהן כל אחד מהם נמצא בכל יום — מפה של איפה הילדים בכל רגע. הרפו
+ציבורי. `seed/schedule.example.json` מראה את המבנה בלי התוכן.
+
+מזהי המסמכים נגזרים מהתוכן, אז הרצה חוזרת אחרי תיקון מעדכנת במקום לשכפל.
+תבנית מחזיקה שעה אחת, אז חוג שרץ בשעות שונות בימים שונים נשמר כמה תבניות
+באותו שם.
+
 ## התראות
 
 **משלוח** דרך FCM. **תזמון** דרך `.github/workflows/notify.yml` שרץ כל 5 דקות.

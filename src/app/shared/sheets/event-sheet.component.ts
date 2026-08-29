@@ -28,6 +28,11 @@ export interface EventSheetData {
         <input name="title" [(ngModel)]="title" autocomplete="off" placeholder="רופא שיניים" required />
       </label>
 
+      <label class="field">
+        <span>איפה</span>
+        <input name="location" [(ngModel)]="location" autocomplete="off" placeholder="רמת ישי" />
+      </label>
+
       <fieldset class="field">
         <legend>של מי</legend>
         <div class="choices">
@@ -213,6 +218,7 @@ export class EventSheetComponent {
   private family = inject(FamilyService);
 
   readonly title = signal('');
+  readonly location = signal('');
   readonly childId = signal<string | null>(null);
   readonly startTime = signal('');
   readonly departureTime = signal('');
@@ -233,6 +239,7 @@ export class EventSheetComponent {
         date: this.data.date,
         type: 'added',
         title: this.title().trim(),
+        location: this.location().trim() || undefined,
         childId: this.childId()!,
         startTime: this.startTime(),
         departureTime: this.departureTime() || undefined,

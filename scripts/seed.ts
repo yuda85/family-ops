@@ -34,6 +34,7 @@ interface SeedChild {
 interface SeedActivity {
   childId: string;
   title: string;
+  location?: string;
   daysOfWeek: number[];
   startTime: TimeStr;
   endTime?: TimeStr;
@@ -86,6 +87,7 @@ async function main(): Promise<void> {
     const payload: Omit<Activity, 'id'> = {
       childId: activity.childId,
       title: activity.title,
+      ...(activity.location ? { location: activity.location } : {}),
       daysOfWeek: [...activity.daysOfWeek].sort((a, b) => a - b),
       startTime: activity.startTime,
       ...(activity.endTime ? { endTime: activity.endTime } : {}),
@@ -108,8 +110,13 @@ async function main(): Promise<void> {
  * instead of leaving a duplicate behind.
  */
 function activityId(activity: SeedActivity): string {
+  // The day set is part of the id because one activity can legitimately appear
+  // more than once for the same child under the same name - the model holds a
+  // single time per template, so a class that runs at different hours on
+  // different days is stored as separate templates.
   const slug = activity.title.replace(/\s+/g, '-');
-  return `${activity.childId}-${slug}`;
+  const days = [...activity.daysOfWeek].sort((a, b) => a - b).join('');
+  return `${activity.childId}-${slug}-${days}`;
 }
 
 function validate(seed: SeedFile): void {
@@ -160,8 +167,11 @@ function report(seed: SeedFile): void {
     console.log(`${child.name} (${child.color})`);
     for (const activity of seed.activities.filter((a) => a.childId === child.id)) {
       const days = activity.daysOfWeek.map((d) => DAYS[d]).join(',');
-      const departure = activity.departureTime ? ` leave ${activity.departureTime}` : '';
-      console.log(`  ${activity.title.padEnd(16)} ${days.padEnd(14)} ${activity.startTime}${departure}`);
+      const departure = activity.departureTime ? `  leave ${activity.departureTime}` : '';
+      const place = activity.location ? `  @${activity.location}` : '';
+      console.log(
+        `  ${activity.title.padEnd(18)} ${days.padEnd(16)} ${activity.startTime}-${activity.endTime ?? '  ?  '}${place}${departure}`
+      );
     }
   }
   void names;

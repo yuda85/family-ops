@@ -13,6 +13,7 @@ interface Draft {
   id: string | null;
   childId: string;
   title: string;
+  location: string;
   daysOfWeek: number[];
   startTime: string;
   endTime: string;
@@ -26,6 +27,7 @@ function emptyDraft(childId: string): Draft {
     id: null,
     childId,
     title: '',
+    location: '',
     daysOfWeek: [],
     startTime: '',
     endTime: '',
@@ -57,6 +59,13 @@ function emptyDraft(childId: string): Draft {
           <span>שם החוג</span>
           <input name="title" [ngModel]="form.title" (ngModelChange)="patch({ title: $event })"
             autocomplete="off" placeholder="התעמלות" required />
+        </label>
+
+        <label class="field">
+          <span>איפה</span>
+          <input name="location" [ngModel]="form.location"
+            (ngModelChange)="patch({ location: $event })" autocomplete="off"
+            placeholder="שמשית" />
         </label>
 
         <fieldset class="field">
@@ -520,6 +529,7 @@ export class ActivitiesComponent {
       id: activity.id,
       childId: activity.childId,
       title: activity.title,
+      location: activity.location ?? '',
       daysOfWeek: [...activity.daysOfWeek],
       startTime: activity.startTime,
       endTime: activity.endTime ?? '',
@@ -583,6 +593,7 @@ export class ActivitiesComponent {
     const payload = {
       childId: form.childId,
       title: form.title.trim(),
+      location: form.location.trim() || undefined,
       daysOfWeek: [...form.daysOfWeek].sort((a, b) => a - b),
       startTime: form.startTime,
       endTime: form.endTime || undefined,
@@ -621,7 +632,8 @@ export class ActivitiesComponent {
       .map((d) => DAY_NAMES[d])
       .join(', ');
     const departure = activity.departureTime ? ` · יציאה ${activity.departureTime}` : '';
-    return `${days} · ${activity.startTime}${departure}`;
+    const place = activity.location ? ` · ${activity.location}` : '';
+    return `${days} · ${activity.startTime}${place}${departure}`;
   }
 
   private updatePrep(index: number, change: (item: PrepItem) => PrepItem): void {

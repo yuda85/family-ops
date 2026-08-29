@@ -28,6 +28,8 @@ export interface Activity {
   id: string;
   childId: string;
   title: string;
+  /** Where it happens. Answers "drive to where?" at a glance. */
+  location?: string;
   daysOfWeek: number[];
   startTime: TimeStr;
   endTime?: TimeStr;
@@ -58,6 +60,7 @@ export interface Override {
   // Patch fields, applied by type.
   childId?: string;
   title?: string;
+  location?: string;
   startTime?: TimeStr;
   endTime?: TimeStr;
   departureTime?: TimeStr;
@@ -96,6 +99,7 @@ export interface DayEntry {
   overrideId?: string;
   childId: string;
   title: string;
+  location?: string;
   startTime: TimeStr;
   endTime?: TimeStr;
   departureTime?: TimeStr;

@@ -426,7 +426,9 @@ export class TodayComponent {
 
     return {
       time: leaving ? row.entry.departureTime! : row.entry.startTime,
-      label: leaving ? `לצאת ל${row.entry.title}` : row.entry.title,
+      label: leaving
+        ? `לצאת ל${row.entry.location ?? row.entry.title}`
+        : row.entry.title,
       detail: detail.join(' · '),
       isMine: row.isMine,
     };
@@ -438,14 +440,13 @@ export class TodayComponent {
   }
 
   subtitle(row: Row): string {
+    const parts = [row.childName, row.entry.location].filter(Boolean);
     if (row.entry.cancelled) {
-      const reason = row.entry.cancelReason;
-      return reason ? `${row.childName} · לא מתקיים — ${reason}` : `${row.childName} · לא מתקיים`;
+      parts.push(row.entry.cancelReason ? `לא מתקיים — ${row.entry.cancelReason}` : 'לא מתקיים');
+    } else if (row.entry.departureTime) {
+      parts.push(`יציאה ${row.entry.departureTime}`);
     }
-    if (row.entry.departureTime) {
-      return `${row.childName} · יציאה ${row.entry.departureTime}`;
-    }
-    return row.childName;
+    return parts.join(' · ');
   }
 
   mealSubtitle(): string {

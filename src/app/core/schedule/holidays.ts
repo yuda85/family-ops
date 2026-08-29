@@ -8,9 +8,22 @@ import { dateStrToUtc } from './date-utils';
  *
  * Israeli schedule (`il = true`): one day of yom tov, not two.
  */
+/**
+ * Modern observances that change what a family's day looks like. The Hebrew
+ * calendar also carries commemorations - Ben-Gurion Day, Jabotinsky Day and
+ * the like - that leave the schedule untouched. Showing those would train
+ * everyone to ignore the banner, which is the one thing it cannot afford.
+ */
+const MODERN_THAT_MATTER = new Set([
+  "Yom HaAtzma'ut",
+  'Yom HaZikaron',
+  'Yom HaShoah',
+  'Yom Yerushalayim',
+]);
+
 export function getHolidayInfo(date: DateStr): HolidayInfo | undefined {
   const [y, m, d] = date.split('-').map(Number);
-  const events = getHolidaysOnDate(new HDate(new Date(y, m - 1, d)), true);
+  const events = getHolidaysOnDate(new HDate(new Date(y, m - 1, d)), true)?.filter(worthShowing);
   if (!events?.length) return undefined;
 
   // Prefer the event that actually affects the day over minor observances.
@@ -35,6 +48,18 @@ export function getHolidayInfo(date: DateStr): HolidayInfo | undefined {
 /** True when the given calendar date is Saturday. */
 export function isShabbat(date: DateStr): boolean {
   return dateStrToUtc(date).getUTCDay() === 6;
+}
+
+function worthShowing(event: { getFlags(): number; getDesc(): string }): boolean {
+  const f = event.getFlags();
+  if (hasFlag(f, flags.CHAG)) return true;
+  if (hasFlag(f, flags.CHOL_HAMOED)) return true;
+  if (hasFlag(f, flags.EREV)) return true;
+  if (hasFlag(f, flags.MAJOR_FAST)) return true;
+  // Purim and Chanukah: minor in the calendar, but school is out.
+  if (hasFlag(f, flags.MINOR_HOLIDAY)) return true;
+  if (hasFlag(f, flags.MODERN_HOLIDAY)) return MODERN_THAT_MATTER.has(event.getDesc());
+  return false;
 }
 
 function hasFlag(value: number, flag: number): boolean {
