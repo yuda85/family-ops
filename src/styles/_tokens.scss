@@ -55,7 +55,8 @@
   --text: #edf0f3;
   --text-muted: #9aa5b1;
   --text-faint: #6b7681;
-  --text-on-accent: #ffffff;
+  // The dark accent is light; white on it lands near 2.4:1.
+  --text-on-accent: #10151b;
 
   --border: #232a31;
   --border-strong: #38424c;

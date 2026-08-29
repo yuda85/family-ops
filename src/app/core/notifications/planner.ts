@@ -215,9 +215,8 @@ function briefBody(day: DayView, data: PlannerData): string {
   }
 
   if (day.meal) {
-    const cook = memberName(data, day.meal.cookBy);
-    const start = day.meal.startCookingAt ? `, להתחיל ${day.meal.startCookingAt}` : '';
-    lines.push(`ארוחת ערב: ${day.meal.title}${cook ? ` (${cook}${start})` : start}`);
+    const start = day.meal.startCookingAt ? ` — להתחיל ${day.meal.startCookingAt}` : '';
+    lines.push(`ארוחת ערב: ${day.meal.title}${start}`);
   }
 
   const unassigned = day.conflicts.filter((c) => c.kind === 'noDriver').length;

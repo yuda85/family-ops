@@ -1,8 +1,7 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 
-import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
 import type { DateStr, Meal } from '../../core/schedule/schedule.models';
 
@@ -11,7 +10,12 @@ export interface MealSheetData {
   meal?: Meal;
 }
 
-/** Dinner for one date: what, who cooks, when they need to start. */
+/**
+ * Dinner for one date: what, and when it has to be started.
+ *
+ * Deliberately does not record who cooks - that is settled between two people
+ * in the same house, and asking for it every day is friction with no payoff.
+ */
 @Component({
   selector: 'app-meal-sheet',
   standalone: true,
@@ -35,32 +39,6 @@ export interface MealSheetData {
         <span>מתי להתחיל להכין</span>
         <input name="startCookingAt" type="time" [(ngModel)]="startCookingAt" />
       </label>
-
-      <fieldset class="field">
-        <legend>מי מבשל</legend>
-        <div class="choices">
-          @for (member of members(); track member.id) {
-            <button
-              type="button"
-              class="choice"
-              [class.selected]="cookBy() === member.id"
-              [attr.aria-pressed]="cookBy() === member.id"
-              (click)="cookBy.set(member.id)"
-            >
-              {{ member.displayName }}
-            </button>
-          }
-          <button
-            type="button"
-            class="choice"
-            [class.selected]="cookBy() === null"
-            [attr.aria-pressed]="cookBy() === null"
-            (click)="cookBy.set(null)"
-          >
-            עדיין לא
-          </button>
-        </div>
-      </fieldset>
 
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
@@ -90,12 +68,9 @@ export interface MealSheetData {
       .field {
         display: block;
         margin-bottom: 16px;
-        border: 0;
-        padding: 0;
       }
 
-      .field > span,
-      .field > legend {
+      .field > span {
         display: block;
         margin-bottom: 6px;
         font-size: 0.8125rem;
@@ -114,33 +89,13 @@ export interface MealSheetData {
         font: inherit;
       }
 
+      input::placeholder {
+        color: var(--text-faint);
+      }
+
       input:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 1px;
-      }
-
-      .choices {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-
-      .choice {
-        min-height: 48px;
-        padding: 0 18px;
-        border-radius: 24px;
-        border: 1px solid var(--border-strong);
-        background: var(--surface);
-        color: var(--text);
-        font: inherit;
-        font-weight: 600;
-        cursor: pointer;
-      }
-
-      .choice.selected {
-        border-color: var(--accent);
-        background: var(--accent-wash);
-        color: var(--accent);
       }
 
       .actions {
@@ -168,7 +123,7 @@ export interface MealSheetData {
 
       .ghost {
         min-height: 48px;
-        padding: 0 18px;
+        padding: 0 20px;
         border-radius: 12px;
         border: 1px solid var(--border-strong);
         background: none;
@@ -195,15 +150,11 @@ export class MealSheetComponent {
   readonly data = inject<MealSheetData>(MAT_BOTTOM_SHEET_DATA);
   private sheetRef = inject(MatBottomSheetRef<MealSheetComponent>);
   private schedule = inject(ScheduleService);
-  private family = inject(FamilyService);
 
   readonly title = signal(this.data.meal?.title ?? '');
   readonly startCookingAt = signal(this.data.meal?.startCookingAt ?? '');
-  readonly cookBy = signal<string | null>(this.data.meal?.cookBy ?? null);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
-
-  readonly members = computed(() => this.family.members());
 
   async save(): Promise<void> {
     const title = this.title().trim();
@@ -214,7 +165,6 @@ export class MealSheetComponent {
       await this.schedule.setMeal({
         date: this.data.date,
         title,
-        cookBy: this.cookBy() ?? undefined,
         startCookingAt: this.startCookingAt() || undefined,
       });
       this.sheetRef.dismiss(true);

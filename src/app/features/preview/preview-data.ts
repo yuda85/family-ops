@@ -80,7 +80,7 @@ function sampleInput(): DayInput {
     { id: 'o1', date: today, type: 'cancelled', activityId: 'a4', reason: 'המורה חולה' },
   ];
   const meals: Meal[] = [
-    { id: today, date: today, title: 'שניצל ופירה', cookBy: 'm2', startCookingAt: '18:00' },
+    { id: today, date: today, title: 'שניצל ופירה', startCookingAt: '18:00' },
   ];
   return { activities: ACTIVITIES, overrides, meals };
 }

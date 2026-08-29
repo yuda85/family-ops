@@ -163,7 +163,7 @@ describe('buildDayView', () => {
       SUNDAY,
       input({
         meals: [
-          { id: 'meal-1', date: SUNDAY, title: 'שניצל', cookBy: 'mom', startCookingAt: '18:00' },
+          { id: 'meal-1', date: SUNDAY, title: 'שניצל', startCookingAt: '18:00' },
           { id: 'meal-2', date: WEDNESDAY, title: 'פסטה' },
         ],
       })

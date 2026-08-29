@@ -72,7 +72,6 @@ export interface Meal {
   id: string;
   date: DateStr;
   title: string;
-  cookBy?: string;
   startCookingAt?: TimeStr;
 }
 

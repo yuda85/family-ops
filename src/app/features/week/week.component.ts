@@ -95,7 +95,9 @@ interface DayCard {
           </span>
           @if (day.view.meal; as meal) {
             <span class="entry-title">{{ meal.title }}</span>
-            <span class="driver">{{ memberName(meal.cookBy) ?? 'מי מבשל?' }}</span>
+            @if (meal.startCookingAt) {
+              <span class="driver">{{ meal.startCookingAt }}</span>
+            }
           } @else {
             <span class="entry-title muted">מה אוכלים?</span>
           }

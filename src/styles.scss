@@ -686,3 +686,24 @@ picture {
   direction: ltr;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+
+// ---------------------------------------------
+// Material overlays
+//
+// The prebuilt Material theme is light-only, so its containers paint a light
+// surface underneath our own tokens - which in dark mode leaves light text on
+// a light sheet. Hand the containers our tokens instead.
+// ---------------------------------------------
+
+.mat-bottom-sheet-container,
+.mat-mdc-bottom-sheet-container {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-start-start-radius: 18px;
+  border-start-end-radius: 18px;
+  padding: 0 !important;
+}
+
+.cdk-overlay-dark-backdrop {
+  background: var(--overlay);
+}

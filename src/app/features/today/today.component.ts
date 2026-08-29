@@ -450,12 +450,7 @@ export class TodayComponent {
 
   mealSubtitle(): string {
     const meal = this.view().meal;
-    if (!meal) return '';
-    const parts: string[] = [];
-    if (meal.startCookingAt) parts.push(`להתחיל ${meal.startCookingAt}`);
-    const cook = this.memberName(meal.cookBy);
-    if (cook) parts.push(cook);
-    return parts.join(' · ');
+    return meal?.startCookingAt ? `להתחיל ${meal.startCookingAt}` : '';
   }
 
   showNowLineBefore(row: Row): boolean {
