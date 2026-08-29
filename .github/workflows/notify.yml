@@ -1,0 +1,37 @@
+name: Push notifications
+
+# Every five minutes is the shortest interval GitHub allows. Scheduled runs can
+# be delayed under load, so the planner accepts a late run within a per-rule
+# grace window and the runner's log guarantees nothing is ever sent twice.
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: 'Plan without sending'
+        type: boolean
+        default: false
+
+concurrency:
+  group: notify
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: Send what is due
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: npx tsx scripts/notify.ts ${{ inputs.dryRun && '--dry-run' || '' }}

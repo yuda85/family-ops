@@ -1,0 +1,141 @@
+// ============================================
+// FamilyOps v2 - Semantic tokens
+// ============================================
+//
+// The chrome is deliberately near-neutral. Child colours are the only
+// saturated hue in the interface, so a colour always means "this belongs to
+// this child" and never anything else. Accent is reserved for the primary
+// action and the now-line; danger for a gap someone has to close.
+//
+// Loaded last so it also re-points the older token names onto this palette.
+
+@mixin light-tokens {
+  --surface: #ffffff;
+  --surface-sunken: #f6f7f9;
+  --surface-raised: #ffffff;
+  --surface-hover: #eef0f3;
+  --overlay: rgba(16, 21, 27, 0.45);
+
+  --text: #10151b;
+  --text-muted: #5c6772;
+  --text-faint: #8a939d;
+  --text-on-accent: #ffffff;
+
+  --border: #e3e7eb;
+  --border-strong: #c9d0d8;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-wash: rgba(37, 99, 235, 0.1);
+
+  --danger: #dc2626;
+  --danger-wash: rgba(220, 38, 38, 0.1);
+  --success: #059669;
+  --warning: #b45309;
+
+  // Child identity colours - the only saturated hue in the interface.
+  --child-coral: #d4503a;
+  --child-sky: #0369a1;
+  --child-green: #15803d;
+  --child-violet: #7c3aed;
+  --child-amber: #b45309;
+  --child-teal: #0f766e;
+  --child-rose: #be185d;
+  --child-indigo: #4338ca;
+  --child-on: #ffffff;
+}
+
+@mixin dark-tokens {
+  --surface: #14171a;
+  --surface-sunken: #0e1114;
+  --surface-raised: #1b1f24;
+  --surface-hover: #232a31;
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --text: #edf0f3;
+  --text-muted: #9aa5b1;
+  --text-faint: #6b7681;
+  --text-on-accent: #ffffff;
+
+  --border: #232a31;
+  --border-strong: #38424c;
+
+  --accent: #6b9bff;
+  --accent-hover: #8db2ff;
+  --accent-wash: rgba(107, 155, 255, 0.16);
+
+  --danger: #f87171;
+  --danger-wash: rgba(248, 113, 113, 0.16);
+  --success: #34d399;
+  --warning: #fbbf24;
+
+  // Lightened so a 4px bar still clears 3:1 against the dark surface.
+  --child-coral: #ff8a6b;
+  --child-sky: #56b6e8;
+  --child-green: #52c77a;
+  --child-violet: #b18cff;
+  --child-amber: #e0a94a;
+  --child-teal: #46c4b4;
+  --child-rose: #f472b6;
+  --child-indigo: #8da2ff;
+  --child-on: #10151b;
+}
+
+// Legacy names still referenced by auth, family and settings screens. Mapped
+// rather than find-and-replaced so those screens inherit the new palette.
+@mixin legacy-aliases {
+  --surface-app: var(--surface-sunken);
+  --surface-primary: var(--surface);
+  --surface-secondary: var(--surface-sunken);
+  --surface-tertiary: var(--surface-hover);
+  --surface-disabled: var(--surface-sunken);
+  --surface-overlay: var(--overlay);
+  --header-bg: var(--surface);
+  --sidebar-bg: var(--surface);
+  --bottom-nav-bg: var(--surface);
+  --modal-bg: var(--surface);
+  --error-bg: var(--danger-wash);
+  --tooltip-bg: var(--text);
+  --tooltip-text: var(--surface);
+
+  --text-primary: var(--text);
+  --text-secondary: var(--text-muted);
+  --text-tertiary: var(--text-faint);
+  --text-disabled: var(--text-faint);
+  --text-link: var(--accent);
+  --text-link-hover: var(--accent-hover);
+  --text-on-primary: var(--text-on-accent);
+  --text-on-colored: var(--text-on-accent);
+
+  --border-subtle: var(--border);
+  --border-default: var(--border);
+
+  --color-primary: var(--accent);
+  --color-primary-light: var(--accent-hover);
+  --color-primary-dark: var(--accent-hover);
+  --color-primary-alpha: var(--accent-wash);
+  --color-secondary: var(--success);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--danger);
+  --color-info: var(--accent);
+}
+
+:root,
+[data-theme='light'] {
+  @include light-tokens;
+  @include legacy-aliases;
+}
+
+[data-theme='dark'] {
+  @include dark-tokens;
+  @include legacy-aliases;
+}
+
+// No explicit choice stored: follow the system.
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    @include dark-tokens;
+    @include legacy-aliases;
+  }
+}

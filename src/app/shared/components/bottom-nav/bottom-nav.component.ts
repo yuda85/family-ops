@@ -1,127 +1,95 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatRippleModule } from '@angular/material/core';
-import { MatBadgeModule } from '@angular/material/badge';
-
-import { BudgetService } from '../../../features/budget/budget.service';
 
 interface NavItem {
   path: string;
   icon: string;
   label: string;
-  exactMatch?: boolean;
-  hasBadge?: boolean;
 }
 
+/**
+ * Primary navigation. Three destinations, no more.
+ * Icon + label always (icon-only nav harms discoverability).
+ */
 @Component({
   selector: 'app-bottom-nav',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIconModule, MatRippleModule, MatBadgeModule],
+  imports: [RouterModule, MatIconModule, MatRippleModule],
   template: `
-    <nav class="bottom-nav">
+    <nav class="bottom-nav" aria-label="ניווט ראשי">
       @for (item of navItems; track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.exactMatch ?? false }"
+          #rla="routerLinkActive"
+          [attr.aria-current]="rla.isActive ? 'page' : null"
           class="nav-item"
           matRipple
         >
-          <div class="icon-wrapper">
-            <mat-icon
-              [matBadge]="item.hasBadge && showBudgetBadge() ? '!' : null"
-              matBadgeColor="warn"
-              matBadgeSize="small"
-            >{{ item.icon }}</mat-icon>
-          </div>
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
           <span class="nav-label">{{ item.label }}</span>
         </a>
       }
     </nav>
   `,
-  styles: [`
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 64px;
-      background: var(--bottom-nav-bg);
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      z-index: 1000;
-      padding-bottom: env(safe-area-inset-bottom, 0);
-
-      @media (min-width: 768px) {
-        display: none;
-      }
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.25rem;
-      padding: 0.5rem 0.75rem;
-      color: var(--text-tertiary);
-      text-decoration: none;
-      transition: all 0.2s ease;
-      border-radius: 0.75rem;
-      min-width: 56px;
-
-      .icon-wrapper {
-        position: relative;
+  styles: [
+    `
+      .bottom-nav {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        display: flex;
+        align-items: stretch;
+        justify-content: space-around;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding-bottom: env(safe-area-inset-bottom, 0);
+        z-index: 100;
       }
 
-      mat-icon {
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-      }
-
-      &:hover {
-        color: var(--text-secondary);
-        background: var(--surface-hover);
-      }
-
-      &.active {
-        color: var(--color-primary);
+      .nav-item {
+        flex: 1;
+        min-height: 56px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 160ms ease;
 
         mat-icon {
-          transform: scale(1.1);
+          font-size: 24px;
+          width: 24px;
+          height: 24px;
+        }
+
+        &.active {
+          color: var(--accent);
+          font-weight: 600;
         }
       }
-    }
 
-    .nav-label {
-      font-size: 0.625rem;
-      font-weight: 500;
-      text-align: center;
-    }
+      .nav-label {
+        font-size: 0.6875rem;
+        line-height: 1;
+      }
 
-    ::ng-deep .mat-badge-content {
-      font-size: 10px !important;
-      width: 16px !important;
-      height: 16px !important;
-      line-height: 16px !important;
-    }
-  `]
+      @media (prefers-reduced-motion: reduce) {
+        .nav-item {
+          transition: none;
+        }
+      }
+    `,
+  ],
 })
 export class BottomNavComponent {
-  private budgetService = inject(BudgetService);
-
-  showBudgetBadge = this.budgetService.needsClosingBadge;
-
   navItems: NavItem[] = [
-    { path: '/app/dashboard', icon: 'dashboard', label: 'בית', exactMatch: true },
-    { path: '/app/calendar', icon: 'calendar_month', label: 'יומן', exactMatch: false },
-    { path: '/app/shopping', icon: 'shopping_cart', label: 'קניות', exactMatch: false },
-    { path: '/app/budget', icon: 'account_balance_wallet', label: 'תקציב', exactMatch: false, hasBadge: true },
-    { path: '/app/topics', icon: 'topic', label: 'נושאים', exactMatch: false },
+    { path: '/app/today', icon: 'today', label: 'היום' },
+    { path: '/app/week', icon: 'view_week', label: 'השבוע' },
+    { path: '/app/settings', icon: 'settings', label: 'הגדרות' },
   ];
 }

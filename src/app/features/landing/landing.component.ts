@@ -81,8 +81,8 @@ interface Benefit {
               <span>אירוע משפחתי</span>
             </div>
             <div class="float-card card-2">
-              <mat-icon>shopping_cart</mat-icon>
-              <span>קניות לשבת</span>
+              <mat-icon>directions_car</mat-icon>
+              <span>אמא אוספת ב-16:00</span>
             </div>
             <div class="float-card card-3">
               <mat-icon>child_care</mat-icon>
@@ -844,24 +844,24 @@ export class LandingComponent {
 
   features: Feature[] = [
     {
-      icon: 'calendar_month',
-      title: 'יומן משפחתי',
-      description: 'אירועים משותפים, תזכורות וקידוד צבעים לכל בן משפחה'
+      icon: 'today',
+      title: 'היום במבט אחד',
+      description: 'ציר זמן אחד: מי מסיע למי, מתי צריך לצאת, ומה לארוחת ערב'
     },
     {
-      icon: 'shopping_cart',
-      title: 'רשימת קניות',
-      description: 'רשימות קניות משותפות עם קטגוריות וסימון פריטים'
+      icon: 'notifications_active',
+      title: 'התראות מוקדמות',
+      description: 'תדריך בערב על מחר, התראת יציאה, ומה צריך להכין מראש'
     },
     {
-      icon: 'topic',
-      title: 'נושאים חשובים',
-      description: 'מעקב אחר נושאים משפחתיים עם רשימות משימות'
+      icon: 'view_week',
+      title: 'תכנון שבוע',
+      description: 'שיבוץ מסיעים, תפריט לשבוע, וכל החריגות במקום אחד'
     },
     {
       icon: 'child_care',
-      title: 'ניהול ילדים',
-      description: 'פרטי ילדים, חוגים, אנשי קשר ומידע חשוב'
+      title: 'חוגים וחגים',
+      description: 'תבניות קבועות, שינויים ליום בודד, ולוח החגים העברי'
     }
   ];
 

@@ -1,142 +1,87 @@
-# FamilyOps 👨‍👩‍👧‍👦
+# FamilyOps
 
-אפליקציית ניהול זמן משפחתי חכמה - Hebrew-first RTL family management app.
+הלוז המשפחתי במבט אחד. Hebrew-first, RTL, mobile-first PWA.
 
-## Features
+## מה זה עושה
 
-- **יומן משפחתי** - Calendar with event categories, child assignments, and ride coordination
-- **רשימת קניות** - Smart shopping list with Hebrew catalog and supermarket mode
-- **ניהול ילדים** - Children management with color coding
-- **תמיכה במשפחות מרובות** - Multi-family support with invitations and roles
-- **מצב כהה/בהיר** - Light/dark mode with system preference detection
-- **RTL תמיכה מלאה** - Full right-to-left Hebrew support
+הבעיה היא לא חוסר מידע — היא מודעות מאוחרת. האפליקציה נותנת מקור אמת אחד
+לשני ההורים, ודוחפת התראות מוקדמות לטלפון.
+
+- **היום** — ציר זמן אחד: מה קורה, מי מסיע, מתי לצאת, מה לארוחת ערב
+- **השבוע** — טקס התכנון: שיבוץ מסיעים, בניית תפריט, ראיית חריגות, אירועים חד-פעמיים
+- **התראות** — תדריך ערב (21:00), יציאות הבוקר (07:00), שעתיים לפני יציאה,
+  10 דקות לפני, מה להכין, ושינוי שבן/בת הזוג עשה
+
+חגי ישראל מחושבים אוטומטית. חוג שנופל על חג **נשאר גלוי** ומסומן "לא מתקיים" —
+אף פעם לא נעלם, כי מה שנעלם נשכח.
+
+## מודל הנתונים
+
+שלוש ישויות תחת `families/{familyId}`:
+
+| ישות | מה זה |
+|---|---|
+| `activities` | תבנית חוג קבועה: ילד, ימים, שעות, שעת יציאה, מסיע לפי יום, מה להכין |
+| `overrides` | **כל** שינוי ליום ספציפי: ביטול, הזזה, החלפת מסיע, אירוע חד-פעמי |
+| `meals` | ארוחת ערב ליום. מזהה המסמך הוא התאריך, אז אין כפילויות |
+
+הכלל המרכזי: **עריכת יום אחד לעולם לא נוגעת בתבנית.** היא כותבת override.
+
+`buildDayView(date, {activities, overrides, meals})` היא פונקציה טהורה שמרכיבה
+את היום בזמן ריצה. גם ה-UI וגם שולח ההתראות קוראים לה, אז שניהם תמיד מסכימים.
+שום דבר לא מחושב מראש ונשמר, אז אין מה שיצא מסנכרון.
 
 ## Tech Stack
 
-- **Frontend**: Angular 21 (standalone components, signals)
-- **UI Library**: Angular Material
-- **Backend**: Firebase (Auth, Firestore)
-- **Styling**: SCSS with CSS custom properties
-- **Deployment**: GitHub Pages
+- Angular 21 (standalone components, signals)
+- Firebase Auth + Firestore
+- `@hebcal/core` ללוח השנה העברי
+- FCM ל-Web Push
+- GitHub Actions cron כטריגר ההתראות
+- GitHub Pages
 
-## Getting Started
+## הרצה
 
-### Prerequisites
-
-- Node.js 20+
-- npm 10+
-- Firebase project
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/YOUR_USERNAME/FamilyOps.git
-cd FamilyOps
-```
-
-2. Install dependencies:
 ```bash
 npm install --legacy-peer-deps
+npm start          # http://localhost:4201
+npm test           # vitest
+npm run build      # production bundle
 ```
 
-3. Configure Firebase:
+בפיתוח יש מסכי תצוגה מקדימה עם נתוני דוגמה, בלי צורך בחשבון:
+`#/preview/today`, `#/preview/week`, `#/preview/activities`.
 
-   Create a Firebase project at [Firebase Console](https://console.firebase.google.com/).
+## התראות
 
-   Update `src/environments/environment.ts` and `src/environments/environment.prod.ts` with your Firebase config:
+**משלוח** דרך FCM. **תזמון** דרך `.github/workflows/notify.yml` שרץ כל 5 דקות.
 
-```typescript
-export const environment = {
-  production: false,
-  firebase: {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_PROJECT_ID.firebaseapp.com',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_PROJECT_ID.appspot.com',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID',
-  },
-  // ...
-};
+```
+src/app/core/notifications/planner.ts   פונקציה טהורה: plan(now, data) -> התראות
+scripts/notify.ts                        Firebase Admin: קורא, מתכנן, שולח, מתעד
+.github/workflows/notify.yml             cron */5
 ```
 
-4. Start the development server:
-```bash
-npm start
-```
+`planner.ts` לא יודע דבר על רשת או על Firestore, ולכן נבדק ביחידה מול שעון קפוא.
+מעבר לטריגר אחר (למשל Cloudflare Workers) מחליף רק את `notify.yml` ו-`notify.ts`.
 
-The app will be available at `http://localhost:4201`
+ריצות מתוזמנות ב-GitHub Actions עלולות להתעכב. לכן לכל כלל יש חלון סובלנות
+(`GRACE_MINUTES`): תדריך שמאחר בעשר דקות עדיין נשלח, "צא עכשיו" שמאחר ברבע שעה
+כבר לא. `notificationLog` מבטיח שכל התראה נשלחת בדיוק פעם אחת.
 
-### Firebase Setup
+### מה צריך להגדיר לפני שזה עובד
 
-1. Enable **Email/Password** authentication in Firebase Console
-2. Create a Firestore database
-3. Deploy security rules from `firestore.rules`
+1. **`FIREBASE_SERVICE_ACCOUNT`** — GitHub secret. Firebase Console >
+   Project settings > Service accounts > Generate new private key. הדבק את כל ה-JSON.
+2. **`vapidKey`** ב-`src/environments/environment*.ts` — Firebase Console >
+   Cloud Messaging > Web configuration > Generate key pair.
 
-## Development
+בדיקה ידנית לפני שמפעילים את ה-cron:
 
 ```bash
-# Start dev server on port 4201
-npm start
-
-# Build for production
-npm run build:prod
-
-# Deploy to GitHub Pages
-npm run deploy
+FIREBASE_SERVICE_ACCOUNT='{...}' npm run notify:dry
 ```
 
-## Project Structure
+## פריסה
 
-```
-src/
-├── app/
-│   ├── core/           # Singleton services, guards
-│   │   ├── auth/       # Authentication
-│   │   ├── firebase/   # Firebase config
-│   │   ├── family/     # Family management
-│   │   └── theme/      # Theme service
-│   ├── shared/         # Reusable components
-│   ├── features/       # Feature modules
-│   │   ├── auth/       # Login, register
-│   │   ├── calendar/   # Calendar views
-│   │   ├── shopping/   # Shopping list
-│   │   ├── family/     # Family management
-│   │   └── settings/   # User settings
-│   └── layouts/        # Layout components
-├── assets/
-│   └── data/           # Static data (catalog, holidays)
-├── environments/       # Environment configs
-└── styles/             # Global SCSS
-```
-
-## Deployment
-
-### GitHub Pages (Automatic)
-
-Push to `main` or `master` branch - GitHub Actions will automatically build and deploy.
-
-### Manual Deployment
-
-```bash
-npm run deploy
-```
-
-## Firestore Security Rules
-
-The app requires specific security rules. See the plan document for the complete rules.
-
-Key points:
-- Users can only access families they're members of
-- Only owners/admins can manage family settings
-- Members can create/edit events and shopping lists
-- Viewers are read-only
-
-## License
-
-MIT
-
----
-
-Built with ❤️ for Israeli families
+דחיפה ל-`main` מפעילה את GitHub Actions. ידנית: `npm run deploy`.

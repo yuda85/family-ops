@@ -10,7 +10,7 @@ import { MatMenuModule } from '@angular/material/menu';
 
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { FamilyService } from '../../../core/family/family.service';
-import { CHILD_COLORS } from '../../../core/family/family.models';
+import { CHILD_COLOR_KEYS } from '../../../core/family/family.models';
 
 @Component({
   selector: 'app-children',
@@ -52,7 +52,7 @@ import { CHILD_COLORS } from '../../../core/family/family.models';
                   <button
                     type="button"
                     class="color-btn"
-                    [style.background]="color"
+                    [style.background]="'var(--child-' + color + ')'"
                     [class.selected]="selectedColor() === color"
                     (click)="selectedColor.set(color)"
                   ></button>
@@ -79,7 +79,7 @@ import { CHILD_COLORS } from '../../../core/family/family.models';
         <div class="children-grid">
           @for (child of familyService.sortedChildren(); track child.id) {
             <div class="child-card card">
-              <div class="child-avatar" [style.background]="child.color">
+              <div class="child-avatar" [style.background]="'var(--child-' + child.color + ')'">
                 {{ child.name.charAt(0) }}
               </div>
               <div class="child-info">
@@ -252,8 +252,8 @@ export class ChildrenComponent {
 
   showAddForm = signal(false);
   isSubmitting = signal(false);
-  selectedColor = signal(CHILD_COLORS[0]);
-  colors = CHILD_COLORS;
+  selectedColor = signal(CHILD_COLOR_KEYS[0]);
+  colors = CHILD_COLOR_KEYS;
 
   childForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -284,7 +284,7 @@ export class ChildrenComponent {
   cancelAdd(): void {
     this.showAddForm.set(false);
     this.childForm.reset();
-    this.selectedColor.set(CHILD_COLORS[0]);
+    this.selectedColor.set(CHILD_COLOR_KEYS[0]);
   }
 
   editChild(child: any): void {

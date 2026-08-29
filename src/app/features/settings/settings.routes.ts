@@ -4,8 +4,19 @@ export const settingsRoutes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./profile/profile.component').then((m) => m.ProfileComponent),
+      import('./settings-home/settings-home.component').then((m) => m.SettingsHomeComponent),
     title: 'הגדרות - FamilyOps',
+  },
+  {
+    path: 'activities',
+    loadComponent: () =>
+      import('./activities/activities.component').then((m) => m.ActivitiesComponent),
+    title: 'חוגים קבועים - FamilyOps',
+  },
+  {
+    path: 'profile',
+    loadComponent: () => import('./profile/profile.component').then((m) => m.ProfileComponent),
+    title: 'הפרופיל שלי - FamilyOps',
   },
 ];
 

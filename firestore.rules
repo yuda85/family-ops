@@ -70,70 +70,35 @@ service cloud.firestore {
         allow write: if canWrite(familyId);
       }
 
-      // Events subcollection
-      match /events/{eventId} {
+      // Recurring activity templates
+      match /activities/{activityId} {
         allow read: if isFamilyMember(familyId);
         allow write: if canWrite(familyId);
       }
 
-      // Event Templates subcollection
-      match /eventTemplates/{templateId} {
+      // Per-date deviations: cancellations, moves, driver swaps, one-offs
+      match /overrides/{overrideId} {
         allow read: if isFamilyMember(familyId);
         allow write: if canWrite(familyId);
       }
 
-      // Shopping Lists subcollection
-      match /shoppingLists/{listId} {
+      // Dinner plan, one document per date
+      match /meals/{date} {
         allow read: if isFamilyMember(familyId);
         allow write: if canWrite(familyId);
       }
 
-      // Staples subcollection
-      match /staples/{staplesId} {
+      // FCM registration tokens. Each member owns exactly their own document.
+      match /pushTokens/{userId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if canWrite(familyId);
+        allow write: if isFamilyMember(familyId) && isOwner(userId);
       }
 
-      // Topics subcollection
-      match /topics/{topicId} {
-        allow read: if isFamilyMember(familyId);
-        allow write: if canWrite(familyId);
-
-        // Tasks subcollection under topics
-        match /tasks/{taskId} {
-          allow read: if isFamilyMember(familyId);
-          allow write: if canWrite(familyId);
-        }
-
-        // Comments subcollection under topics
-        match /comments/{commentId} {
-          allow read: if isFamilyMember(familyId);
-          allow write: if canWrite(familyId);
-        }
-
-        // Attachments subcollection under topics
-        match /attachments/{attachmentId} {
-          allow read: if isFamilyMember(familyId);
-          allow write: if canWrite(familyId);
-        }
-
-        // Activity subcollection under topics
-        match /activity/{activityId} {
-          allow read: if isFamilyMember(familyId);
-          allow create: if canWrite(familyId);
-        }
+      // Written only by the notification runner via the Admin SDK, which
+      // bypasses these rules. Clients have no reason to touch it.
+      match /notificationLog/{entryId} {
+        allow read, write: if false;
       }
-    }
-
-    // Collection group query for tasks (allows querying tasks across all topics)
-    match /{path=**}/tasks/{taskId} {
-      allow read: if isAuthenticated();
-    }
-
-    // Global shopping catalog (read-only)
-    match /shoppingCatalog/{itemId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Admin only via console/functions
     }
 
     // Invites collection

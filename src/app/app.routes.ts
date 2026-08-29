@@ -1,15 +1,14 @@
 import { Routes } from '@angular/router';
 import { authGuard, guestGuard } from './core/auth/auth.guard';
 import { familyGuard } from './core/family/family.guard';
+import { environment } from '../environments/environment';
 
 export const routes: Routes = [
   // Landing page (for non-authenticated users)
   {
     path: '',
     loadComponent: () =>
-      import('./features/landing/landing.component').then(
-        (m) => m.LandingComponent
-      ),
+      import('./features/landing/landing.component').then((m) => m.LandingComponent),
     canActivate: [guestGuard],
     pathMatch: 'full',
     title: 'FamilyOps - ניהול משפחתי חכם',
@@ -46,39 +45,20 @@ export const routes: Routes = [
   {
     path: 'app',
     loadComponent: () =>
-      import('./layouts/main-layout/main-layout.component').then(
-        (m) => m.MainLayoutComponent
-      ),
+      import('./layouts/main-layout/main-layout.component').then((m) => m.MainLayoutComponent),
     canActivate: [authGuard, familyGuard],
     children: [
+      { path: '', redirectTo: 'today', pathMatch: 'full' },
       {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
+        path: 'today',
+        loadComponent: () =>
+          import('./features/today/today.component').then((m) => m.TodayComponent),
+        title: 'היום - FamilyOps',
       },
       {
-        path: 'dashboard',
-        loadChildren: () => import('./features/dashboard/dashboard.routes'),
-      },
-      {
-        path: 'calendar',
-        loadChildren: () => import('./features/calendar/calendar.routes'),
-      },
-      {
-        path: 'transportation',
-        loadChildren: () => import('./features/transportation/transportation.routes'),
-      },
-      {
-        path: 'shopping',
-        loadChildren: () => import('./features/shopping/shopping.routes'),
-      },
-      {
-        path: 'budget',
-        loadChildren: () => import('./features/budget/budget.routes'),
-      },
-      {
-        path: 'topics',
-        loadChildren: () => import('./features/topics/topics.routes'),
+        path: 'week',
+        loadComponent: () => import('./features/week/week.component').then((m) => m.WeekComponent),
+        title: 'השבוע - FamilyOps',
       },
       {
         path: 'family',
@@ -90,6 +70,44 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // Development-only visual harness for the Today screen.
+  ...(environment.production
+    ? []
+    : [
+        {
+          path: 'preview/today',
+          loadComponent: () =>
+            import('./features/preview/today-preview.component').then(
+              (m) => m.TodayPreviewComponent
+            ),
+          title: 'תצוגה מקדימה - היום',
+        },
+        {
+          path: 'preview/settings',
+          loadComponent: () =>
+            import('./features/preview/settings-preview.component').then(
+              (m) => m.SettingsPreviewComponent
+            ),
+          title: 'תצוגה מקדימה - הגדרות',
+        },
+        {
+          path: 'preview/activities',
+          loadComponent: () =>
+            import('./features/preview/activities-preview.component').then(
+              (m) => m.ActivitiesPreviewComponent
+            ),
+          title: 'תצוגה מקדימה - חוגים',
+        },
+        {
+          path: 'preview/week',
+          loadComponent: () =>
+            import('./features/preview/week-preview.component').then(
+              (m) => m.WeekPreviewComponent
+            ),
+          title: 'תצוגה מקדימה - השבוע',
+        },
+      ]),
 
   // Catch-all redirect
   {
