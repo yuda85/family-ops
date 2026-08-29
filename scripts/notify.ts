@@ -9,6 +9,11 @@
  *
  * Usage:
  *   FIREBASE_SERVICE_ACCOUNT='{...}' npx tsx scripts/notify.ts [--dry-run]
+ *   FIREBASE_SERVICE_ACCOUNT='{...}' npx tsx scripts/notify.ts --test
+ *
+ * --test sends one notification to every registered device immediately. It
+ * exists because at most hours of the day nothing is due, so a normal run
+ * proves nothing about whether the delivery path actually works.
  */
 
 import { cert, initializeApp } from 'firebase-admin/app';
@@ -20,6 +25,7 @@ import { toDateStr } from '../src/app/core/schedule/date-utils';
 import type { Activity, Meal, Override } from '../src/app/core/schedule/schedule.models';
 
 const DRY_RUN = process.argv.includes('--dry-run');
+const TEST = process.argv.includes('--test');
 
 /** Where a tapped notification should open. */
 const APP_URL = process.env['APP_URL'] ?? 'https://yuda85.github.io/family-ops/';
@@ -39,10 +45,27 @@ async function main(): Promise<void> {
   let sent = 0;
 
   for (const family of families.docs) {
-    sent += await runFamily(db, family.id, now);
+    sent += TEST ? await sendTest(db, family.id) : await runFamily(db, family.id, now);
   }
 
   console.log(`${families.size} families, ${sent} notifications ${DRY_RUN ? 'planned' : 'sent'}`);
+}
+
+/**
+ * Proves the delivery path end to end without waiting for something to be due.
+ * Deliberately skips the log, so it can be run as many times as needed.
+ */
+async function sendTest(db: Firestore, familyId: string): Promise<number> {
+  const base = db.collection('families').doc(familyId);
+  const members = await base.collection('members').get();
+
+  await deliver(base, {
+    key: 'test',
+    userIds: members.docs.map((d) => d.id),
+    title: 'בדיקה',
+    body: 'אם ההודעה הזו הגיעה, ההתראות עובדות.',
+  });
+  return 1;
 }
 
 async function runFamily(db: Firestore, familyId: string, now: Date): Promise<number> {

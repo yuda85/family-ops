@@ -12,6 +12,10 @@ on:
         description: 'Plan without sending'
         type: boolean
         default: false
+      test:
+        description: 'Send a test notification to every device now'
+        type: boolean
+        default: false
 
 concurrency:
   group: notify
@@ -49,4 +53,4 @@ jobs:
         if: env.CONFIGURED == 'true'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: npx tsx scripts/notify.ts ${{ inputs.dryRun && '--dry-run' || '' }}
+        run: npx tsx scripts/notify.ts ${{ inputs.dryRun && '--dry-run' || '' }} ${{ inputs.test && '--test' || '' }}
