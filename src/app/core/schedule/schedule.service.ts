@@ -8,9 +8,11 @@ import { buildDayView, type DayInput } from './day-builder';
 import { addDays, toDateStr } from './date-utils';
 import type {
   Activity,
+  Availability,
   DateStr,
   DayEntry,
   DayView,
+  DayWork,
   Meal,
   Override,
 } from './schedule.models';
@@ -30,11 +32,13 @@ export class ScheduleService {
   private _activities = signal<Activity[]>([]);
   private _overrides = signal<Override[]>([]);
   private _meals = signal<Meal[]>([]);
+  private _availability = signal<Availability[]>([]);
   private _isLoading = signal(false);
 
   readonly activities = this._activities.asReadonly();
   readonly overrides = this._overrides.asReadonly();
   readonly meals = this._meals.asReadonly();
+  readonly availability = this._availability.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
 
   private subscriptions: Subscription[] = [];
@@ -68,6 +72,7 @@ export class ScheduleService {
       activities: this._activities(),
       overrides: this._overrides(),
       meals: this._meals(),
+      availability: this._availability(),
     };
   }
 
@@ -103,6 +108,11 @@ export class ScheduleService {
 
   async deleteOverride(id: string): Promise<void> {
     return this.firestore.deleteDocument(`${this.path('overrides')}/${id}`);
+  }
+
+  /** A member's whole week, replacing whatever was there. */
+  async setAvailability(memberId: string, days: Record<number, DayWork>): Promise<void> {
+    return this.firestore.setDocument(`${this.path('availability')}/${memberId}`, { days }, false);
   }
 
   /** One dinner per date: the date is the document id, so it cannot duplicate. */
@@ -197,6 +207,9 @@ export class ScheduleService {
       this.firestore
         .getCollection$<Meal>(`${base}/meals`, where('date', '>=', since))
         .subscribe((rows) => this._meals.set(rows)),
+      this.firestore
+        .getCollection$<Availability>(`${base}/availability`)
+        .subscribe((rows) => this._availability.set(rows)),
     ];
   }
 
@@ -206,5 +219,6 @@ export class ScheduleService {
     this._activities.set([]);
     this._overrides.set([]);
     this._meals.set([]);
+    this._availability.set([]);
   }
 }

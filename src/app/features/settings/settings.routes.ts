@@ -14,6 +14,12 @@ export const settingsRoutes: Routes = [
     title: 'חוגים קבועים - FamilyOps',
   },
   {
+    path: 'availability',
+    loadComponent: () =>
+      import('./availability/availability.component').then((m) => m.AvailabilityComponent),
+    title: 'מי בבית - FamilyOps',
+  },
+  {
     path: 'import',
     loadComponent: () =>
       import('./import/import-schedule.component').then((m) => m.ImportScheduleComponent),

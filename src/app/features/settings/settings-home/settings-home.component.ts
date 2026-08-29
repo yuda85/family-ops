@@ -219,6 +219,12 @@ export class SettingsHomeComponent {
       label: 'חוגים קבועים',
       hint: 'התבניות שמהן נבנה כל שבוע',
     },
+    {
+      path: '/app/settings/availability',
+      icon: 'home_work',
+      label: 'מי בבית',
+      hint: 'השבוע הקבוע של כל הורה',
+    },
     { path: '/app/family/children', icon: 'child_care', label: 'הילדים', hint: 'שמות וצבעים' },
     { path: '/app/family/members', icon: 'group', label: 'ההורים', hint: 'מי במשפחה' },
     // One-time bulk import. Delete this entry and the 'import' route once the

@@ -71,6 +71,23 @@ export interface Override {
   createdBy?: string;
 }
 
+/**
+ * A parent's working pattern for one weekday: at home, or back at a time.
+ * Absence of an entry means nobody said, which is shown as nothing rather
+ * than guessed.
+ */
+export interface DayWork {
+  worksFromHome: boolean;
+  returnTime?: TimeStr;
+}
+
+/** One document per member, holding their week. */
+export interface Availability {
+  /** Member document id. */
+  id: string;
+  days: Record<number, DayWork>;
+}
+
 export interface Meal {
   id: string;
   date: DateStr;
@@ -122,6 +139,16 @@ export interface Conflict {
   message: string;
 }
 
+export interface MemberPresence extends DayWork {
+  memberId: string;
+}
+
+/**
+ * What kind of day this is for the parents. Drives one small marker - the
+ * point is to see at a glance whether anyone is around.
+ */
+export type DayShape = 'home' | 'early' | 'late' | 'mid' | 'unknown';
+
 export interface DayView {
   date: DateStr;
   /** 0=Sunday */
@@ -131,4 +158,7 @@ export interface DayView {
   entries: DayEntry[];
   meal?: Meal;
   conflicts: Conflict[];
+  /** Only members who have something recorded for this weekday. */
+  presence: MemberPresence[];
+  shape: DayShape;
 }

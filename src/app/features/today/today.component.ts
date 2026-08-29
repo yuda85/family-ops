@@ -9,6 +9,7 @@ import { ScheduleService } from '../../core/schedule/schedule.service';
 import { addDays, toDateStr, toMinutes, toTimeStr } from '../../core/schedule/date-utils';
 import type { DayEntry, DayView } from '../../core/schedule/schedule.models';
 import { EntrySheetComponent, type EntrySheetData } from '../../shared/sheets/entry-sheet.component';
+import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
 
 /** A timeline row, already resolved to display strings. */
 interface Row {
@@ -31,7 +32,7 @@ interface NextUp {
 @Component({
   selector: 'app-today',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatBottomSheetModule],
+  imports: [DatePipe, MatIconModule, MatBottomSheetModule, PresenceStripComponent],
   template: `
     <header class="day-header">
       <h1>{{ dateObj() | date: 'EEEE, d בMMMM' : undefined : 'he' }}</h1>
@@ -41,6 +42,7 @@ interface NextUp {
           <span>{{ text }}</span>
         </p>
       }
+      <app-presence-strip [presence]="view().presence" [shape]="view().shape" />
     </header>
 
     @if (nextUp(); as next) {

@@ -222,6 +222,16 @@ function briefBody(day: DayView, data: PlannerData): string {
     lines.push(`ארוחת ערב: ${day.meal.title}${start}`);
   }
 
+  const presence = day.presence
+    .map((p) => {
+      const name = memberName(data, p.memberId);
+      if (!name) return null;
+      if (p.worksFromHome) return `${name} בבית`;
+      return p.returnTime ? `${name} חוזר ${p.returnTime}` : null;
+    })
+    .filter(Boolean);
+  if (presence.length) lines.push(presence.join(' · '));
+
   const unassigned = day.conflicts.filter((c) => c.kind === 'noDriver').length;
   if (unassigned) lines.push(`⚠ ${unassigned} הסעות ללא מסיע`);
 

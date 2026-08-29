@@ -88,6 +88,13 @@ service cloud.firestore {
         allow write: if canWrite(familyId);
       }
 
+      // Each parent's working week: at home, or back at a time. Either
+      // parent may edit either row - they are running one household.
+      match /availability/{memberId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
       // FCM registration tokens. Each member owns exactly their own document.
       match /pushTokens/{userId} {
         allow read: if isFamilyMember(familyId);

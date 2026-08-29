@@ -1,10 +1,13 @@
 import type {
   Activity,
+  Availability,
   Conflict,
   DateStr,
   DayEntry,
+  DayShape,
   DayView,
   Meal,
+  MemberPresence,
   Override,
 } from './schedule.models';
 import { dayOfWeekOf, toMinutes, withinRange } from './date-utils';
@@ -14,7 +17,13 @@ export interface DayInput {
   activities: Activity[];
   overrides: Override[];
   meals: Meal[];
+  availability?: Availability[];
 }
+
+/** Home by this hour and the afternoon is covered. */
+const EARLY_BY = '15:00';
+/** Home only after this and the afternoon needs arranging. */
+const LATE_FROM = '17:00';
 
 /**
  * The single source of truth for "what is happening on this date".
@@ -89,6 +98,8 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
 
   entries.sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
 
+  const presence = presenceFor(dayOfWeek, input.availability ?? []);
+
   return {
     date,
     dayOfWeek,
@@ -96,7 +107,33 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
     entries,
     meal: input.meals.find((m) => m.date === date),
     conflicts: findConflicts(entries),
+    presence,
+    shape: shapeOf(presence),
   };
+}
+
+function presenceFor(dayOfWeek: number, availability: Availability[]): MemberPresence[] {
+  return availability
+    .map((entry) => ({ memberId: entry.id, work: entry.days?.[dayOfWeek] }))
+    .filter((x): x is { memberId: string; work: NonNullable<typeof x.work> } => !!x.work)
+    .map(({ memberId, work }) => ({ memberId, ...work }));
+}
+
+/**
+ * The single question this answers: is anyone around this afternoon? Someone
+ * at home settles it; otherwise the earliest return decides.
+ */
+function shapeOf(presence: MemberPresence[]): DayShape {
+  if (!presence.length) return 'unknown';
+  if (presence.some((p) => p.worksFromHome)) return 'home';
+
+  const returns = presence.map((p) => p.returnTime).filter((t): t is string => !!t);
+  if (!returns.length) return 'unknown';
+
+  const earliest = returns.reduce((a, b) => (toMinutes(a) <= toMinutes(b) ? a : b));
+  if (toMinutes(earliest) <= toMinutes(EARLY_BY)) return 'early';
+  if (toMinutes(earliest) >= toMinutes(LATE_FROM)) return 'late';
+  return 'mid';
 }
 
 function applyOverride(entry: DayEntry, override: Override): DayEntry {

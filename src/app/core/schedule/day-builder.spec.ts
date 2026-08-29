@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildDayView, type DayInput } from './day-builder';
-import type { Activity, Override } from './schedule.models';
+import type { Activity, Availability, Override } from './schedule.models';
 
 // Plain weeks with no holidays: 2026-11-15 Sunday, 2026-11-18 Wednesday.
 const SUNDAY = '2026-11-15';
@@ -182,6 +182,43 @@ describe('buildDayView', () => {
     });
 
     expect(buildDayView(SUNDAY, clash).conflicts).toHaveLength(0);
+  });
+
+  describe('who is around', () => {
+    const availability: Availability[] = [
+      { id: 'dad', days: { 0: { worksFromHome: true }, 1: { worksFromHome: false, returnTime: '18:30' } } },
+      { id: 'mom', days: { 1: { worksFromHome: false, returnTime: '14:30' } } },
+    ];
+
+    it('reports only the members with something recorded for that day', () => {
+      const view = buildDayView(SUNDAY, { ...input(), availability });
+
+      expect(view.presence).toEqual([{ memberId: 'dad', worksFromHome: true }]);
+    });
+
+    it('calls it a home day when someone is at home, whatever the others do', () => {
+      expect(buildDayView(SUNDAY, { ...input(), availability }).shape).toBe('home');
+    });
+
+    it('takes the earliest return when nobody is home', () => {
+      // Monday: 18:30 and 14:30 - the early one settles the afternoon.
+      expect(buildDayView('2026-11-16', { ...input(), availability }).shape).toBe('early');
+    });
+
+    it('calls it a late day when even the earliest return is late', () => {
+      const bothLate: Availability[] = [
+        { id: 'dad', days: { 1: { worksFromHome: false, returnTime: '18:30' } } },
+        { id: 'mom', days: { 1: { worksFromHome: false, returnTime: '17:45' } } },
+      ];
+      expect(buildDayView('2026-11-16', { ...input(), availability: bothLate }).shape).toBe('late');
+    });
+
+    it('says nothing rather than guessing when no one filled it in', () => {
+      const view = buildDayView(SUNDAY, input());
+
+      expect(view.presence).toEqual([]);
+      expect(view.shape).toBe('unknown');
+    });
   });
 
   it('attaches the meal for the date', () => {

@@ -82,8 +82,13 @@ function sampleInput(): DayInput {
   const meals: Meal[] = [
     { id: today, date: today, title: 'שניצל ופירה', startCookingAt: '18:00' },
   ];
-  return { activities: ACTIVITIES, overrides, meals };
+  return { activities: ACTIVITIES, overrides, meals, availability: AVAILABILITY };
 }
+
+const AVAILABILITY = [
+  { id: 'm1', days: { 0: { worksFromHome: true }, 1: { worksFromHome: false, returnTime: '18:30' } } },
+  { id: 'm2', days: { 0: { worksFromHome: false, returnTime: '16:00' }, 1: { worksFromHome: false, returnTime: '19:00' } } },
+];
 
 export const PREVIEW_PROVIDERS: Provider[] = [
   {
@@ -93,6 +98,8 @@ export const PREVIEW_PROVIDERS: Provider[] = [
       weekView: (from: DateStr) =>
         Array.from({ length: 7 }, (_, i) => buildDayView(addDays(from, i), sampleInput())),
       activities: () => ACTIVITIES,
+      availability: () => AVAILABILITY,
+      setAvailability: async () => undefined,
       createActivity: async () => 'preview',
       updateActivity: async () => undefined,
       deleteActivity: async () => undefined,

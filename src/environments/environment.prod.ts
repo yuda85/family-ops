@@ -15,7 +15,7 @@ export const environment = {
   // Web Push certificate key pair from Firebase Console >
   // Project settings > Cloud Messaging > Web configuration.
   // Public by design; without it the browser cannot be registered for push.
-  vapidKey: '',
+  vapidKey: 'BL9lbThH8GHaJKwB_bRRm5oj7Gef8Z2HdlWF_bsPwqjcTT2Vc_2TbCikDlUPEhbFVOEPpbsP0Tmwx4tkA5z6NgQ',
 
   // App configuration
   appName: 'FamilyOps',

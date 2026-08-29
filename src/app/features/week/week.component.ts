@@ -17,6 +17,7 @@ import {
   EventSheetComponent,
   type EventSheetData,
 } from '../../shared/sheets/event-sheet.component';
+import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
 
 interface EntryRow {
   entry: DayEntry;
@@ -43,7 +44,7 @@ interface DayCard {
 @Component({
   selector: 'app-week',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatBottomSheetModule],
+  imports: [DatePipe, MatIconModule, MatBottomSheetModule, PresenceStripComponent],
   template: `
     <header class="week-header">
       <button type="button" class="nav" (click)="shift(-7)" aria-label="שבוע קודם">
@@ -68,6 +69,8 @@ interface DayCard {
             <span class="chip">{{ holiday.name }}</span>
           }
         </h2>
+
+        <app-presence-strip [presence]="day.view.presence" [shape]="day.view.shape" />
 
         @for (row of day.rows; track row.entry.id) {
           <button
