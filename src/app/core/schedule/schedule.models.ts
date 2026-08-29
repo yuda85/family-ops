@@ -94,11 +94,37 @@ export interface Availability {
   days: Record<number, DayWork>;
 }
 
+/** How often a dinner comes round. */
+export type Cadence = 'weekly' | 'fortnightly';
+
+/**
+ * A dinner that repeats. `anchorDate` is any date the plan actually runs; for
+ * a fortnightly plan it is what decides which of the two weeks it lands on.
+ */
+export interface MealPlan {
+  id: string;
+  title: string;
+  dayOfWeek: number;
+  cadence: Cadence;
+  anchorDate: DateStr;
+  startCookingAt?: TimeStr;
+  activeFrom?: DateStr;
+  activeUntil?: DateStr;
+  createdBy?: string;
+}
+
+/**
+ * One date's dinner. Either a one-off, or a change to what the plan says for
+ * that date - the same template-and-override shape the activities use.
+ */
 export interface Meal {
   id: string;
   date: DateStr;
-  title: string;
+  title?: string;
   startCookingAt?: TimeStr;
+  /** Nothing planned this week, despite the plan. */
+  cancelled?: boolean;
+  createdBy?: string;
 }
 
 // ============================================
@@ -149,6 +175,15 @@ export interface Conflict {
   message: string;
 }
 
+/** The dinner for a date, once plan and override have been combined. */
+export interface DayMeal {
+  title: string;
+  startCookingAt?: TimeStr;
+  /** Set when it comes from a repeating plan rather than a one-off. */
+  planId?: string;
+  cadence?: Cadence;
+}
+
 export interface MemberPresence extends DayWork {
   memberId: string;
 }
@@ -166,7 +201,7 @@ export interface DayView {
   holiday?: HolidayInfo;
   /** Sorted by start time. Cancelled entries included. */
   entries: DayEntry[];
-  meal?: Meal;
+  meal?: DayMeal;
   conflicts: Conflict[];
   /** Only members who have something recorded for this weekday. */
   presence: MemberPresence[];

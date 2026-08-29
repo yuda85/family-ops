@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildDayView, type DayInput } from './day-builder';
-import type { Activity, Availability, Override } from './schedule.models';
+import type { Activity, Availability, MealPlan, Override } from './schedule.models';
 
 // Plain weeks with no holidays: 2026-11-15 Sunday, 2026-11-18 Wednesday.
 const SUNDAY = '2026-11-15';
@@ -262,6 +262,96 @@ describe('buildDayView', () => {
 
       expect(view.presence).toEqual([]);
       expect(view.shape).toBe('unknown');
+    });
+  });
+
+  describe('dinner', () => {
+    const weekly: MealPlan = {
+      id: 'plan-pasta',
+      title: 'פסטה',
+      dayOfWeek: 0,
+      cadence: 'weekly',
+      anchorDate: SUNDAY,
+      startCookingAt: '18:00',
+    };
+    const fortnightly: MealPlan = { ...weekly, id: 'plan-fish', title: 'דגים', cadence: 'fortnightly' };
+
+    it('comes round every week when the plan says weekly', () => {
+      for (const date of [SUNDAY, '2026-11-22', '2026-11-29']) {
+        expect(buildDayView(date, input({ mealPlans: [weekly] })).meal?.title).toBe('פסטה');
+      }
+    });
+
+    it('skips every other week when the plan says fortnightly', () => {
+      const on = buildDayView(SUNDAY, input({ mealPlans: [fortnightly] }));
+      const off = buildDayView('2026-11-22', input({ mealPlans: [fortnightly] }));
+      const onAgain = buildDayView('2026-11-29', input({ mealPlans: [fortnightly] }));
+
+      expect(on.meal?.title).toBe('דגים');
+      expect(off.meal).toBeUndefined();
+      expect(onAgain.meal?.title).toBe('דגים');
+    });
+
+    it('holds the fortnightly rhythm backwards as well as forwards', () => {
+      // A week before the anchor is an off week.
+      expect(buildDayView('2026-11-08', input({ mealPlans: [fortnightly] })).meal).toBeUndefined();
+      expect(buildDayView('2026-11-01', input({ mealPlans: [fortnightly] })).meal?.title).toBe('דגים');
+    });
+
+    it('stays off the days the plan does not fall on', () => {
+      expect(buildDayView('2026-11-16', input({ mealPlans: [weekly] })).meal).toBeUndefined();
+    });
+
+    it('lets one date override the plan without disturbing the others', () => {
+      const withOverride = input({
+        mealPlans: [weekly],
+        meals: [{ id: SUNDAY, date: SUNDAY, title: 'פיצה' }],
+      });
+
+      expect(buildDayView(SUNDAY, withOverride).meal?.title).toBe('פיצה');
+      expect(buildDayView('2026-11-22', withOverride).meal?.title).toBe('פסטה');
+    });
+
+    it('lets one date skip the plan entirely', () => {
+      const skipped = input({
+        mealPlans: [weekly],
+        meals: [{ id: SUNDAY, date: SUNDAY, cancelled: true }],
+      });
+
+      expect(buildDayView(SUNDAY, skipped).meal).toBeUndefined();
+      expect(buildDayView('2026-11-22', skipped).meal?.title).toBe('פסטה');
+    });
+
+    it('respects the window a plan is active for', () => {
+      const ended: MealPlan = { ...weekly, activeUntil: '2026-11-20' };
+
+      expect(buildDayView(SUNDAY, input({ mealPlans: [ended] })).meal?.title).toBe('פסטה');
+      expect(buildDayView('2026-11-22', input({ mealPlans: [ended] })).meal).toBeUndefined();
+    });
+
+    it('decides the rhythm by calendar week, not by the day gap', () => {
+      // Anchor recorded on the Friday of the same week as SUNDAY. Because the
+      // comparison is week to week, a mid-week anchor still lands the plan in
+      // that week rather than drifting by the number of days between them.
+      const midWeekAnchor: MealPlan = { ...fortnightly, anchorDate: '2026-11-20' };
+
+      expect(buildDayView(SUNDAY, input({ mealPlans: [midWeekAnchor] })).meal?.title).toBe('דגים');
+      expect(buildDayView('2026-11-22', input({ mealPlans: [midWeekAnchor] })).meal).toBeUndefined();
+      expect(buildDayView('2026-11-29', input({ mealPlans: [midWeekAnchor] })).meal?.title).toBe('דגים');
+    });
+
+    it('says where a dinner came from, so an edit can ask about scope', () => {
+      const view = buildDayView(SUNDAY, input({ mealPlans: [fortnightly] }));
+
+      expect(view.meal?.planId).toBe('plan-fish');
+      expect(view.meal?.cadence).toBe('fortnightly');
+    });
+
+    it('leaves a one-off with no plan behind it', () => {
+      const view = buildDayView(SUNDAY, input({ meals: [{ id: SUNDAY, date: SUNDAY, title: 'סושי' }] }));
+
+      expect(view.meal?.title).toBe('סושי');
+      expect(view.meal?.planId).toBeUndefined();
     });
   });
 

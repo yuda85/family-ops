@@ -14,6 +14,7 @@ import type {
   DayView,
   DayWork,
   Meal,
+  MealPlan,
   Override,
   TimeStr,
 } from './schedule.models';
@@ -33,12 +34,14 @@ export class ScheduleService {
   private _activities = signal<Activity[]>([]);
   private _overrides = signal<Override[]>([]);
   private _meals = signal<Meal[]>([]);
+  private _mealPlans = signal<MealPlan[]>([]);
   private _availability = signal<Availability[]>([]);
   private _isLoading = signal(false);
 
   readonly activities = this._activities.asReadonly();
   readonly overrides = this._overrides.asReadonly();
   readonly meals = this._meals.asReadonly();
+  readonly mealPlans = this._mealPlans.asReadonly();
   readonly availability = this._availability.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
 
@@ -73,6 +76,7 @@ export class ScheduleService {
       activities: this._activities(),
       overrides: this._overrides(),
       meals: this._meals(),
+      mealPlans: this._mealPlans(),
       availability: this._availability(),
     };
   }
@@ -116,13 +120,36 @@ export class ScheduleService {
     return this.firestore.setDocument(`${this.path('availability')}/${memberId}`, { days }, false);
   }
 
-  /** One dinner per date: the date is the document id, so it cannot duplicate. */
+  /**
+   * One dinner per date: the date is the document id, so it cannot duplicate.
+   * Doubles as the override for a repeating plan.
+   */
   async setMeal(meal: Omit<Meal, 'id'>): Promise<void> {
     return this.firestore.setDocument(`${this.path('meals')}/${meal.date}`, meal, true);
   }
 
   async deleteMeal(date: DateStr): Promise<void> {
     return this.firestore.deleteDocument(`${this.path('meals')}/${date}`);
+  }
+
+  /** Skip a repeating dinner for one date without touching the plan. */
+  async skipMeal(date: DateStr): Promise<void> {
+    return this.firestore.setDocument(`${this.path('meals')}/${date}`, { date, cancelled: true }, false);
+  }
+
+  async createMealPlan(data: Omit<MealPlan, 'id'>): Promise<string> {
+    return this.firestore.createDocument(this.path('mealPlans'), {
+      ...data,
+      createdBy: this.auth.user()?.id ?? null,
+    });
+  }
+
+  async updateMealPlan(id: string, data: Partial<MealPlan>): Promise<void> {
+    return this.firestore.updateDocument(`${this.path('mealPlans')}/${id}`, data);
+  }
+
+  async deleteMealPlan(id: string): Promise<void> {
+    return this.firestore.deleteDocument(`${this.path('mealPlans')}/${id}`);
   }
 
   // ============================================
@@ -259,6 +286,9 @@ export class ScheduleService {
         .getCollection$<Meal>(`${base}/meals`, where('date', '>=', since))
         .subscribe((rows) => this._meals.set(rows)),
       this.firestore
+        .getCollection$<MealPlan>(`${base}/mealPlans`)
+        .subscribe((rows) => this._mealPlans.set(rows)),
+      this.firestore
         .getCollection$<Availability>(`${base}/availability`)
         .subscribe((rows) => this._availability.set(rows)),
     ];
@@ -270,6 +300,7 @@ export class ScheduleService {
     this._activities.set([]);
     this._overrides.set([]);
     this._meals.set([]);
+    this._mealPlans.set([]);
     this._availability.set([]);
   }
 }

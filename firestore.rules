@@ -82,6 +82,12 @@ service cloud.firestore {
         allow write: if canWrite(familyId);
       }
 
+      // Repeating dinners: weekly or every other week
+      match /mealPlans/{planId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
       // Dinner plan, one document per date
       match /meals/{date} {
         allow read: if isFamilyMember(familyId);

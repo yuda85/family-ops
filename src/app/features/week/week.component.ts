@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
 import { addDays, dayOfWeekOf, toDateStr } from '../../core/schedule/date-utils';
-import type { DayEntry, DayView } from '../../core/schedule/schedule.models';
+import type { Cadence, DayEntry, DayView } from '../../core/schedule/schedule.models';
 import {
   EntrySheetComponent,
   type EntrySheetData,
@@ -97,7 +97,14 @@ interface DayCard {
             <mat-icon aria-hidden="true">restaurant</mat-icon>
           </span>
           @if (day.view.meal; as meal) {
-            <span class="entry-title">{{ meal.title }}</span>
+            <span class="entry-title">
+              {{ meal.title }}
+              @if (meal.planId) {
+                <mat-icon class="repeats" [attr.aria-label]="cadenceLabel(meal.cadence)">
+                  repeat
+                </mat-icon>
+              }
+            </span>
             @if (meal.startCookingAt) {
               <span class="driver">{{ meal.startCookingAt }}</span>
             }
@@ -258,6 +265,14 @@ interface DayCard {
         white-space: nowrap;
       }
 
+      .repeats {
+        font-size: 14px;
+        width: 14px;
+        height: 14px;
+        vertical-align: -2px;
+        color: var(--text-faint);
+      }
+
       .entry-title.muted {
         color: var(--text-muted);
       }
@@ -353,6 +368,10 @@ export class WeekComponent {
 
   shift(days: number): void {
     this.weekStart.update((d) => addDays(d, days));
+  }
+
+  cadenceLabel(cadence: Cadence | undefined): string {
+    return cadence === 'fortnightly' ? 'חוזר שבוע כן שבוע לא' : 'חוזר כל שבוע';
   }
 
   entryLabel(row: EntryRow): string {

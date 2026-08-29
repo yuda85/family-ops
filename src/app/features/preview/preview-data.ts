@@ -5,8 +5,14 @@ import { PushService } from '../../core/notifications/push.service';
 import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
 import { buildDayView, type DayInput } from '../../core/schedule/day-builder';
-import { addDays, toDateStr } from '../../core/schedule/date-utils';
-import type { Activity, DateStr, Meal, Override } from '../../core/schedule/schedule.models';
+import { addDays, dayOfWeekOf, toDateStr } from '../../core/schedule/date-utils';
+import type {
+  Activity,
+  DateStr,
+  Meal,
+  MealPlan,
+  Override,
+} from '../../core/schedule/schedule.models';
 
 /**
  * Development-only sample family. Lets the real screens be checked for layout,
@@ -82,7 +88,25 @@ function sampleInput(): DayInput {
   const meals: Meal[] = [
     { id: today, date: today, title: 'שניצל ופירה', startCookingAt: '18:00' },
   ];
-  return { activities: ACTIVITIES, overrides, meals, availability: AVAILABILITY };
+  const mealPlans: MealPlan[] = [
+    {
+      id: 'plan-pasta',
+      title: 'פסטה',
+      dayOfWeek: (dayOfWeekOf(today) + 1) % 7,
+      cadence: 'weekly',
+      anchorDate: addDays(today, 1),
+      startCookingAt: '18:30',
+    },
+    {
+      id: 'plan-fish',
+      title: 'דגים',
+      dayOfWeek: (dayOfWeekOf(today) + 2) % 7,
+      cadence: 'fortnightly',
+      anchorDate: addDays(today, 2),
+      startCookingAt: '18:00',
+    },
+  ];
+  return { activities: ACTIVITIES, overrides, meals, mealPlans, availability: AVAILABILITY };
 }
 
 const AVAILABILITY = [
@@ -107,6 +131,10 @@ export const PREVIEW_PROVIDERS: Provider[] = [
       setCancelled: async () => undefined,
       setMeal: async () => undefined,
       deleteMeal: async () => undefined,
+      skipMeal: async () => undefined,
+      createMealPlan: async () => 'preview',
+      updateMealPlan: async () => undefined,
+      deleteMealPlan: async () => undefined,
       createOverride: async () => 'preview',
     },
   },

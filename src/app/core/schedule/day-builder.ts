@@ -6,19 +6,24 @@ import type {
   DayEntry,
   DayShape,
   DayView,
+  DayMeal,
   Meal,
+  MealPlan,
   MemberPresence,
   Override,
 } from './schedule.models';
-import { dayOfWeekOf, toMinutes, withinRange } from './date-utils';
+import { dateStrToUtc, dayOfWeekOf, toMinutes, withinRange } from './date-utils';
 import { getHolidayInfo } from './holidays';
 
 export interface DayInput {
   activities: Activity[];
   overrides: Override[];
   meals: Meal[];
+  mealPlans?: MealPlan[];
   availability?: Availability[];
 }
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Home by this hour and the afternoon is covered. */
 const EARLY_BY = '15:00';
@@ -135,11 +140,60 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
     dayOfWeek,
     holiday,
     entries,
-    meal: input.meals.find((m) => m.date === date),
+    meal: mealFor(date, dayOfWeek, input),
     conflicts: findConflicts(entries),
     presence,
     shape: shapeOf(presence),
   };
+}
+
+/**
+ * Plan and override combined. A one-off with no plan behind it still works,
+ * and an override can either change the dinner or say there isn't one.
+ */
+function mealFor(date: DateStr, dayOfWeek: number, input: DayInput): DayMeal | undefined {
+  const override = input.meals.find((m) => m.date === date);
+  const plan = (input.mealPlans ?? []).find((p) => planRunsOn(p, date, dayOfWeek));
+
+  if (override?.cancelled) return undefined;
+
+  if (override && (override.title || plan)) {
+    return {
+      title: override.title ?? plan!.title,
+      startCookingAt: override.startCookingAt ?? plan?.startCookingAt,
+      planId: plan?.id,
+      cadence: plan?.cadence,
+    };
+  }
+
+  if (plan) {
+    return {
+      title: plan.title,
+      startCookingAt: plan.startCookingAt,
+      planId: plan.id,
+      cadence: plan.cadence,
+    };
+  }
+
+  return undefined;
+}
+
+function planRunsOn(plan: MealPlan, date: DateStr, dayOfWeek: number): boolean {
+  if (plan.dayOfWeek !== dayOfWeek) return false;
+  if (!withinRange(date, plan.activeFrom, plan.activeUntil)) return false;
+  if (plan.cadence === 'weekly') return true;
+
+  // Compared by calendar week rather than by raw day difference, so the
+  // rhythm holds even if the anchor was recorded on a different weekday.
+  const delta = weekIndex(date) - weekIndex(plan.anchorDate);
+  return delta % 2 === 0;
+}
+
+/** Weeks since the epoch, counting from Sunday. */
+function weekIndex(date: DateStr): number {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const startOfWeek = dateStrToUtc(date).getTime() - dayOfWeekOf(date) * dayMs;
+  return Math.round(startOfWeek / WEEK_MS);
 }
 
 function presenceFor(dayOfWeek: number, availability: Availability[]): MemberPresence[] {
