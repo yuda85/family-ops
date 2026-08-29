@@ -21,17 +21,32 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      # Referenced from step-level `if` so the run is skipped, not failed,
+      # while the secret has not been added yet. Otherwise every five-minute
+      # tick would report a failure.
+      CONFIGURED: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
     steps:
+      - name: Warn when not configured
+        if: env.CONFIGURED != 'true'
+        run: |
+          echo "::warning::FIREBASE_SERVICE_ACCOUNT is not set - skipping."
+          echo "Add it under Settings > Secrets and variables > Actions."
+
       - uses: actions/checkout@v4
+        if: env.CONFIGURED == 'true'
 
       - uses: actions/setup-node@v4
+        if: env.CONFIGURED == 'true'
         with:
           node-version: 22
           cache: npm
 
       - run: npm ci --legacy-peer-deps
+        if: env.CONFIGURED == 'true'
 
       - name: Send what is due
+        if: env.CONFIGURED == 'true'
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: npx tsx scripts/notify.ts ${{ inputs.dryRun && '--dry-run' || '' }}

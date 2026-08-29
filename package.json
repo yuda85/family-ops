@@ -10,7 +10,9 @@
     "test": "ng test",
     "deploy": "ng build --configuration production && npx angular-cli-ghpages --dir=dist/family-ops/browser",
     "notify": "tsx scripts/notify.ts",
-    "notify:dry": "tsx scripts/notify.ts --dry-run"
+    "notify:dry": "tsx scripts/notify.ts --dry-run",
+    "seed": "tsx scripts/seed.ts",
+    "seed:dry": "tsx scripts/seed.ts --dry-run"
   },
   "prettier": {
     "printWidth": 100,
