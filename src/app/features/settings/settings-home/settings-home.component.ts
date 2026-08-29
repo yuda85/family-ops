@@ -221,6 +221,14 @@ export class SettingsHomeComponent {
     },
     { path: '/app/family/children', icon: 'child_care', label: 'הילדים', hint: 'שמות וצבעים' },
     { path: '/app/family/members', icon: 'group', label: 'ההורים', hint: 'מי במשפחה' },
+    // One-time bulk import. Delete this entry and the 'import' route once the
+    // schedule is in; nothing else depends on them.
+    {
+      path: '/app/settings/import',
+      icon: 'upload_file',
+      label: 'ייבוא לוז',
+      hint: 'הדבקה חד-פעמית של כל החוגים',
+    },
   ];
 
   readonly themes = [

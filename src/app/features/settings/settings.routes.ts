@@ -14,6 +14,12 @@ export const settingsRoutes: Routes = [
     title: 'חוגים קבועים - FamilyOps',
   },
   {
+    path: 'import',
+    loadComponent: () =>
+      import('./import/import-schedule.component').then((m) => m.ImportScheduleComponent),
+    title: 'ייבוא לוז - FamilyOps',
+  },
+  {
     path: 'profile',
     loadComponent: () => import('./profile/profile.component').then((m) => m.ProfileComponent),
     title: 'הפרופיל שלי - FamilyOps',

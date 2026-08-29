@@ -46,3 +46,7 @@ Thumbs.db
 # given hour. Not for a public repository. seed/schedule.example.json shows
 # the shape.
 /seed/schedule.json
+
+# Local convenience copy so the in-app import screen can prefill itself while
+# running on localhost. Same content, same reason to keep it out of the repo.
+/public/seed.local.json
