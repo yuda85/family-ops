@@ -10,6 +10,10 @@ import { addDays, toDateStr, toMinutes, toTimeStr } from '../../core/schedule/da
 import type { DayEntry, DayView } from '../../core/schedule/schedule.models';
 import { EntrySheetComponent, type EntrySheetData } from '../../shared/sheets/entry-sheet.component';
 import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
+import {
+  PresenceSheetComponent,
+  type PresenceSheetData,
+} from '../../shared/sheets/presence-sheet.component';
 
 /** A timeline row, already resolved to display strings. */
 interface Row {
@@ -42,7 +46,11 @@ interface NextUp {
           <span>{{ text }}</span>
         </p>
       }
-      <app-presence-strip [presence]="view().presence" [shape]="view().shape" />
+      <app-presence-strip
+        [presence]="view().presence"
+        [shape]="view().shape"
+        (edit)="editPresence()"
+      />
     </header>
 
     @if (nextUp(); as next) {
@@ -473,6 +481,11 @@ export class TodayComponent {
   memberName(id?: string | null): string | null {
     if (!id) return null;
     return this.family.members().find((m) => m.id === id)?.displayName ?? null;
+  }
+
+  editPresence(): void {
+    const data: PresenceSheetData = { date: this.today(), presence: this.view().presence };
+    this.sheet.open(PresenceSheetComponent, { data });
   }
 
   openEntry(row: Row): void {

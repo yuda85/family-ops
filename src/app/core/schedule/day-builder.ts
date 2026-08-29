@@ -2,6 +2,7 @@ import type {
   Activity,
   Availability,
   Conflict,
+  DayWorkOverride,
   DateStr,
   DayEntry,
   DayShape,
@@ -21,6 +22,7 @@ export interface DayInput {
   meals: Meal[];
   mealPlans?: MealPlan[];
   availability?: Availability[];
+  availabilityDays?: DayWorkOverride[];
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -133,7 +135,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
 
   entries.sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
 
-  const presence = presenceFor(dayOfWeek, input.availability ?? []);
+  const presence = presenceFor(date, dayOfWeek, input);
 
   return {
     date,
@@ -196,11 +198,29 @@ function weekIndex(date: DateStr): number {
   return Math.round(startOfWeek / WEEK_MS);
 }
 
-function presenceFor(dayOfWeek: number, availability: Availability[]): MemberPresence[] {
-  return availability
-    .map((entry) => ({ memberId: entry.id, work: entry.days?.[dayOfWeek] }))
-    .filter((x): x is { memberId: string; work: NonNullable<typeof x.work> } => !!x.work)
-    .map(({ memberId, work }) => ({ memberId, ...work }));
+/** The usual week, with this date's deviations applied on top. */
+function presenceFor(date: DateStr, dayOfWeek: number, input: DayInput): MemberPresence[] {
+  const byMember = new Map<string, MemberPresence>();
+
+  for (const entry of input.availability ?? []) {
+    const work = entry.days?.[dayOfWeek];
+    if (work) byMember.set(entry.id, { memberId: entry.id, ...work });
+  }
+
+  for (const override of input.availabilityDays ?? []) {
+    if (override.date !== date) continue;
+    if (override.cleared) {
+      byMember.delete(override.memberId);
+      continue;
+    }
+    byMember.set(override.memberId, {
+      memberId: override.memberId,
+      worksFromHome: override.worksFromHome,
+      ...(override.returnTime ? { returnTime: override.returnTime } : {}),
+    });
+  }
+
+  return [...byMember.values()];
 }
 
 /**

@@ -87,11 +87,26 @@ export interface DayWork {
   returnTime?: TimeStr;
 }
 
-/** One document per member, holding their week. */
+/** One document per member, holding their usual week. */
 export interface Availability {
   /** Member document id. */
   id: string;
   days: Record<number, DayWork>;
+}
+
+/**
+ * One member's working arrangement for one specific date, overriding their
+ * usual week. Weeks deviate from the pattern constantly - working from home
+ * on a Tuesday instead of a Monday, or being needed in the office - and the
+ * pattern should not have to be rewritten for a single week.
+ */
+export interface DayWorkOverride extends DayWork {
+  /** `${date}_${memberId}` */
+  id: string;
+  date: DateStr;
+  memberId: string;
+  /** Nothing recorded this date, whatever the usual week says. */
+  cleared?: boolean;
 }
 
 /** How often a dinner comes round. */

@@ -13,6 +13,7 @@ import type {
   DayEntry,
   DayView,
   DayWork,
+  DayWorkOverride,
   Meal,
   MealPlan,
   Override,
@@ -36,6 +37,7 @@ export class ScheduleService {
   private _meals = signal<Meal[]>([]);
   private _mealPlans = signal<MealPlan[]>([]);
   private _availability = signal<Availability[]>([]);
+  private _availabilityDays = signal<DayWorkOverride[]>([]);
   private _isLoading = signal(false);
 
   readonly activities = this._activities.asReadonly();
@@ -43,6 +45,7 @@ export class ScheduleService {
   readonly meals = this._meals.asReadonly();
   readonly mealPlans = this._mealPlans.asReadonly();
   readonly availability = this._availability.asReadonly();
+  readonly availabilityDays = this._availabilityDays.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
 
   private subscriptions: Subscription[] = [];
@@ -78,6 +81,7 @@ export class ScheduleService {
       meals: this._meals(),
       mealPlans: this._mealPlans(),
       availability: this._availability(),
+      availabilityDays: this._availabilityDays(),
     };
   }
 
@@ -113,6 +117,27 @@ export class ScheduleService {
 
   async deleteOverride(id: string): Promise<void> {
     return this.firestore.deleteDocument(`${this.path('overrides')}/${id}`);
+  }
+
+  /**
+   * One member's arrangement for one date, leaving their usual week alone.
+   * Passing null clears the date back to whatever the pattern says; passing a
+   * cleared entry says nothing is recorded that day at all.
+   */
+  async setDayWork(
+    date: DateStr,
+    memberId: string,
+    work: DayWork | 'cleared' | null
+  ): Promise<void> {
+    const path = `${this.path('availabilityDays')}/${date}_${memberId}`;
+    if (work === null) return this.firestore.deleteDocument(path);
+
+    const payload: Omit<DayWorkOverride, 'id'> =
+      work === 'cleared'
+        ? { date, memberId, worksFromHome: false, cleared: true }
+        : { date, memberId, worksFromHome: work.worksFromHome, ...(work.returnTime ? { returnTime: work.returnTime } : {}) };
+
+    return this.firestore.setDocument(path, payload, false);
   }
 
   /** A member's whole week, replacing whatever was there. */
@@ -324,6 +349,9 @@ export class ScheduleService {
       this.firestore
         .getCollection$<Availability>(`${base}/availability`)
         .subscribe((rows) => this._availability.set(rows)),
+      this.firestore
+        .getCollection$<DayWorkOverride>(`${base}/availabilityDays`, where('date', '>=', since))
+        .subscribe((rows) => this._availabilityDays.set(rows)),
     ];
   }
 
@@ -335,5 +363,6 @@ export class ScheduleService {
     this._meals.set([]);
     this._mealPlans.set([]);
     this._availability.set([]);
+    this._availabilityDays.set([]);
   }
 }

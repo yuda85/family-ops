@@ -18,6 +18,10 @@ import {
   type EventSheetData,
 } from '../../shared/sheets/event-sheet.component';
 import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
+import {
+  PresenceSheetComponent,
+  type PresenceSheetData,
+} from '../../shared/sheets/presence-sheet.component';
 
 interface EntryRow {
   entry: DayEntry;
@@ -70,7 +74,11 @@ interface DayCard {
           }
         </h2>
 
-        <app-presence-strip [presence]="day.view.presence" [shape]="day.view.shape" />
+        <app-presence-strip
+          [presence]="day.view.presence"
+          [shape]="day.view.shape"
+          (edit)="editPresence(day)"
+        />
 
         @for (row of day.rows; track row.entry.id) {
           <button
@@ -386,6 +394,11 @@ export class WeekComponent {
   editEntry(day: DayCard, row: EntryRow): void {
     const data: EntrySheetData = { date: day.view.date, entry: row.entry };
     this.sheet.open(EntrySheetComponent, { data });
+  }
+
+  editPresence(day: DayCard): void {
+    const data: PresenceSheetData = { date: day.view.date, presence: day.view.presence };
+    this.sheet.open(PresenceSheetComponent, { data });
   }
 
   editMeal(day: DayCard): void {

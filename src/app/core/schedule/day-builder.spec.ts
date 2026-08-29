@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { buildDayView, type DayInput } from './day-builder';
-import type { Activity, Availability, MealPlan, Override } from './schedule.models';
+import type {
+  Activity,
+  Availability,
+  DayWorkOverride,
+  MealPlan,
+  Override,
+} from './schedule.models';
 
 // Plain weeks with no holidays: 2026-11-15 Sunday, 2026-11-18 Wednesday.
 const SUNDAY = '2026-11-15';
@@ -270,6 +276,42 @@ describe('buildDayView', () => {
         { id: 'mom', days: { 1: { worksFromHome: false, returnTime: '17:45' } } },
       ];
       expect(buildDayView('2026-11-16', { ...input(), availability: bothLate }).shape).toBe('late');
+    });
+
+    it('lets one date override the usual week', () => {
+      const wfhTuesday: DayWorkOverride[] = [
+        { id: '1', date: '2026-11-17', memberId: 'dad', worksFromHome: true },
+      ];
+      const data = { ...input(), availability, availabilityDays: wfhTuesday };
+
+      // Tuesday has nothing in the pattern; the override puts dad at home.
+      expect(buildDayView('2026-11-17', data).presence).toEqual([
+        { memberId: 'dad', worksFromHome: true },
+      ]);
+      expect(buildDayView('2026-11-17', data).shape).toBe('home');
+    });
+
+    it('replaces what the pattern says for that date only', () => {
+      const lateMonday: DayWorkOverride[] = [
+        { id: '2', date: '2026-11-16', memberId: 'mom', worksFromHome: false, returnTime: '19:30' },
+      ];
+      const data = { ...input(), availability, availabilityDays: lateMonday };
+
+      // Mom's pattern says 14:30 on Mondays; this week she is back at 19:30,
+      // which with dad at 18:30 makes it a late day.
+      expect(buildDayView('2026-11-16', data).shape).toBe('late');
+      // The following Monday is back to the pattern.
+      expect(buildDayView('2026-11-23', data).shape).toBe('early');
+    });
+
+    it('can say nothing is recorded for a date the pattern covers', () => {
+      const cleared: DayWorkOverride[] = [
+        { id: '3', date: SUNDAY, memberId: 'dad', worksFromHome: false, cleared: true },
+      ];
+      const view = buildDayView(SUNDAY, { ...input(), availability, availabilityDays: cleared });
+
+      expect(view.presence).toEqual([]);
+      expect(view.shape).toBe('unknown');
     });
 
     it('says nothing rather than guessing when no one filled it in', () => {

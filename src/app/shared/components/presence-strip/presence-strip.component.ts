@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 import { FamilyService } from '../../../core/family/family.service';
@@ -22,22 +22,31 @@ interface Chip {
   standalone: true,
   imports: [MatIconModule],
   template: `
-    @if (chips().length) {
-      <div class="strip" [class.late]="shape() === 'late'">
-        @if (shape() === 'late') {
-          <span class="flag">
-            <mat-icon aria-hidden="true">bedtime</mat-icon>
-            יום מאוחר
-          </span>
-        }
-        @for (chip of chips(); track chip.memberId) {
-          <span class="chip">
-            <mat-icon aria-hidden="true">{{ chip.icon }}</mat-icon>
-            {{ chip.label }}
-          </span>
-        }
-      </div>
-    }
+    <button
+      type="button"
+      class="strip"
+      [class.late]="shape() === 'late'"
+      [class.empty]="!chips().length"
+      (click)="edit.emit()"
+    >
+      @if (shape() === 'late') {
+        <span class="flag">
+          <mat-icon aria-hidden="true">bedtime</mat-icon>
+          יום מאוחר
+        </span>
+      }
+      @for (chip of chips(); track chip.memberId) {
+        <span class="chip">
+          <mat-icon aria-hidden="true">{{ chip.icon }}</mat-icon>
+          {{ chip.label }}
+        </span>
+      } @empty {
+        <span class="chip">
+          <mat-icon aria-hidden="true">home_work</mat-icon>
+          מי בבית?
+        </span>
+      }
+    </button>
   `,
   styles: [
     `
@@ -46,10 +55,24 @@ interface Chip {
         flex-wrap: wrap;
         align-items: center;
         gap: 6px 10px;
+        width: 100%;
+        min-height: 44px;
         margin-top: 8px;
         padding: 6px 10px;
+        border: 0;
         border-radius: 10px;
         background: var(--surface-hover);
+        font: inherit;
+        text-align: start;
+        cursor: pointer;
+      }
+
+      .strip.empty {
+        background: none;
+      }
+
+      .strip.empty .chip {
+        color: var(--text-faint);
       }
 
       .strip.late {
@@ -81,6 +104,7 @@ interface Chip {
 export class PresenceStripComponent {
   readonly presence = input.required<MemberPresence[]>();
   readonly shape = input.required<DayShape>();
+  readonly edit = output<void>();
 
   private family = inject(FamilyService);
 

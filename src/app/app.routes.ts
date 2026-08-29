@@ -84,6 +84,14 @@ export const routes: Routes = [
           title: 'תצוגה מקדימה - היום',
         },
         {
+          path: 'preview/presence',
+          loadComponent: () =>
+            import('./features/preview/presence-preview.component').then(
+              (m) => m.PresencePreviewComponent
+            ),
+          title: 'תצוגה מקדימה - מי בבית היום',
+        },
+        {
           path: 'preview/availability',
           loadComponent: () =>
             import('./features/preview/availability-preview.component').then(
