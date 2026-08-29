@@ -695,6 +695,13 @@ picture {
 // a light sheet. Hand the containers our tokens instead.
 // ---------------------------------------------
 
+// Material sets Roboto on its overlay containers. Roboto carries no Hebrew,
+// so every `font: inherit` inside a sheet fell through to a system fallback.
+.cdk-overlay-container,
+.cdk-overlay-container * {
+  font-family: var(--font-family-hebrew);
+}
+
 .mat-bottom-sheet-container,
 .mat-mdc-bottom-sheet-container {
   background: var(--surface) !important;
