@@ -61,6 +61,12 @@ export interface Override {
   childId?: string;
   title?: string;
   location?: string;
+  /**
+   * Relocates this occurrence to another date. The original date keeps a
+   * struck-through entry saying where it went - a moved lesson that vanishes
+   * from the day you were looking at is how it gets missed.
+   */
+  movedToDate?: DateStr;
   startTime?: TimeStr;
   endTime?: TimeStr;
   departureTime?: TimeStr;
@@ -127,6 +133,10 @@ export interface DayEntry {
   cancelReason?: string;
   /** Set when an override moved the time, so the UI can show the change. */
   movedFrom?: { startTime: TimeStr; endTime?: TimeStr };
+  /** This occurrence was sent to another date. */
+  movedToDate?: DateStr;
+  /** This occurrence arrived from another date. */
+  movedFromDate?: DateStr;
   prepItems: PrepItem[];
 }
 

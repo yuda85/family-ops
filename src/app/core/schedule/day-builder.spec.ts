@@ -184,6 +184,50 @@ describe('buildDayView', () => {
     expect(buildDayView(SUNDAY, clash).conflicts).toHaveLength(0);
   });
 
+  describe('moving one occurrence to another date', () => {
+    // Sunday's gym, pushed to Tuesday 2026-11-17 at 18:00.
+    const moved: Override = {
+      id: 'ovr-move',
+      date: SUNDAY,
+      type: 'moved',
+      activityId: 'act-gym',
+      movedToDate: '2026-11-17',
+      startTime: '18:00',
+    };
+
+    it('keeps it visible on the original day, struck through, saying where it went', () => {
+      const view = buildDayView(SUNDAY, input({ overrides: [moved] }));
+
+      expect(view.entries).toHaveLength(1);
+      expect(view.entries[0].cancelled).toBe(true);
+      expect(view.entries[0].movedToDate).toBe('2026-11-17');
+      expect(view.entries[0].cancelReason).toContain('2026-11-17');
+    });
+
+    it('shows it on the day it moved to, at the new time', () => {
+      const view = buildDayView('2026-11-17', input({ overrides: [moved] }));
+
+      expect(view.entries).toHaveLength(1);
+      expect(view.entries[0].title).toBe('התעמלות');
+      expect(view.entries[0].startTime).toBe('18:00');
+      expect(view.entries[0].movedFromDate).toBe(SUNDAY);
+      expect(view.entries[0].cancelled).toBe(false);
+    });
+
+    it('does not ask for a driver on the day it left', () => {
+      expect(buildDayView(SUNDAY, input({ overrides: [moved] })).conflicts).toHaveLength(0);
+    });
+
+    it('leaves every other week alone', () => {
+      // The following Sunday still runs as the template says.
+      const next = buildDayView('2026-11-22', input({ overrides: [moved] }));
+
+      expect(next.entries).toHaveLength(1);
+      expect(next.entries[0].cancelled).toBe(false);
+      expect(next.entries[0].startTime).toBe('16:00');
+    });
+  });
+
   describe('who is around', () => {
     const availability: Availability[] = [
       { id: 'dad', days: { 0: { worksFromHome: true }, 1: { worksFromHome: false, returnTime: '18:30' } } },

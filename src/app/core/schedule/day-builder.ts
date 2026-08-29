@@ -70,12 +70,42 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
     for (const override of overrides) {
       entry = applyOverride(entry, override);
     }
+
+    const relocation = overrides.find((o) => o.movedToDate && o.movedToDate !== date);
+    if (relocation) {
+      entry.cancelled = true;
+      entry.movedToDate = relocation.movedToDate;
+      entry.cancelReason = relocation.reason ?? `הועבר ל-${relocation.movedToDate}`;
+    }
     if (cancelling) {
       entry.cancelled = true;
       entry.cancelReason = cancelling.reason ?? entry.cancelReason;
     }
 
     entries.push(entry);
+  }
+
+  // Occurrences relocated onto this date from another one.
+  for (const override of input.overrides) {
+    if (override.movedToDate !== date) continue;
+    const activity = input.activities.find((a) => a.id === override.activityId);
+    if (!activity) continue;
+
+    entries.push({
+      id: `${activity.id}@${override.id}`,
+      activityId: activity.id,
+      overrideId: override.id,
+      childId: activity.childId,
+      title: activity.title,
+      location: activity.location,
+      startTime: override.startTime ?? activity.startTime,
+      endTime: override.endTime ?? activity.endTime,
+      departureTime: override.departureTime ?? activity.departureTime,
+      driverId: override.driverId ?? activity.drivers[dayOfWeek] ?? null,
+      cancelled: false,
+      movedFromDate: override.date,
+      prepItems: activity.prepItems ?? [],
+    });
   }
 
   // One-off events live only as overrides; they have no template behind them.

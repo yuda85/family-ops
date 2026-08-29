@@ -15,6 +15,7 @@ import type {
   DayWork,
   Meal,
   Override,
+  TimeStr,
 } from './schedule.models';
 
 /**
@@ -146,6 +147,56 @@ export class ScheduleService {
       type: 'driverChanged',
       activityId: entry.activityId,
       driverId,
+    });
+  }
+
+  /**
+   * Move one occurrence to another date and time. The original date keeps a
+   * struck-through entry pointing at the new one.
+   */
+  async moveOccurrence(
+    date: DateStr,
+    entry: DayEntry,
+    to: { date: DateStr; startTime: TimeStr; endTime?: TimeStr; departureTime?: TimeStr }
+  ): Promise<void> {
+    const patch = {
+      movedToDate: to.date,
+      startTime: to.startTime,
+      ...(to.endTime ? { endTime: to.endTime } : {}),
+      ...(to.departureTime ? { departureTime: to.departureTime } : {}),
+    };
+
+    const existing = this.findOverride(date, entry.activityId, 'moved');
+    if (existing) return this.updateOverride(existing.id, patch);
+
+    await this.createOverride({ date, type: 'moved', activityId: entry.activityId, ...patch });
+  }
+
+  /**
+   * Change a template from a date onwards: the old one is closed the day
+   * before and a new one opens. Editing the template in place would rewrite
+   * weeks that already happened, so looking back would show a week that never
+   * took place.
+   */
+  async moveSeriesFrom(
+    fromDate: DateStr,
+    activity: Activity,
+    patch: Pick<Activity, 'daysOfWeek' | 'startTime'> &
+      Partial<Pick<Activity, 'endTime' | 'departureTime'>>
+  ): Promise<void> {
+    await this.updateActivity(activity.id, { activeUntil: addDays(fromDate, -1) });
+
+    await this.createActivity({
+      childId: activity.childId,
+      title: activity.title,
+      ...(activity.location ? { location: activity.location } : {}),
+      daysOfWeek: [...patch.daysOfWeek].sort((a, b) => a - b),
+      startTime: patch.startTime,
+      ...(patch.endTime ? { endTime: patch.endTime } : {}),
+      ...(patch.departureTime ? { departureTime: patch.departureTime } : {}),
+      drivers: activity.drivers ?? {},
+      prepItems: activity.prepItems ?? [],
+      activeFrom: fromDate,
     });
   }
 

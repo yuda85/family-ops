@@ -1,9 +1,11 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatBottomSheetRef, MAT_BOTTOM_SHEET_DATA } from '@angular/material/bottom-sheet';
 import { MatIconModule } from '@angular/material/icon';
 
 import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
+import { dayOfWeekOf } from '../../core/schedule/date-utils';
 import type { DateStr, DayEntry } from '../../core/schedule/schedule.models';
 
 export interface EntrySheetData {
@@ -11,18 +13,27 @@ export interface EntrySheetData {
   entry: DayEntry;
 }
 
+/** Which weeks a change applies to. */
+type Scope = 'once' | 'onwards';
+
+const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+
 /**
- * Quick edit for one entry on one day: who drives, and whether it happens.
- * Anything structural (times, recurrence, prep) belongs in the activity form.
+ * Everything you can do to one entry on one day: who drives, move it, or say
+ * it is not happening.
+ *
+ * A move asks which weeks it applies to. Changing the template in place is
+ * deliberately not offered: it would rewrite weeks that already happened, so
+ * looking back would show a week that never took place.
  */
 @Component({
   selector: 'app-entry-sheet',
   standalone: true,
-  imports: [MatIconModule],
+  imports: [FormsModule, MatIconModule],
   template: `
     <div class="sheet">
       <h2>{{ data.entry.title }}</h2>
-      <p class="sub">{{ childName() }} · {{ data.entry.startTime }}</p>
+      <p class="sub">{{ subtitle() }}</p>
 
       @if (data.entry.departureTime) {
         <section>
@@ -52,12 +63,65 @@ export interface EntrySheetData {
         </section>
       }
 
-      <section>
+      @if (canMove()) {
+        @if (!moving()) {
+          <button type="button" class="action" (click)="startMove()">
+            <mat-icon aria-hidden="true">event_repeat</mat-icon>
+            <span>הזז</span>
+          </button>
+        } @else {
+          <section class="move">
+            <h3>להזיז ל</h3>
+            <div class="row">
+              <label class="field">
+                <span>תאריך</span>
+                <input type="date" [(ngModel)]="toDate" name="toDate" />
+              </label>
+              <label class="field">
+                <span>שעה</span>
+                <input type="time" [(ngModel)]="toTime" name="toTime" />
+              </label>
+            </div>
+
+            <h3 id="scope-label">על אילו שבועות</h3>
+            <div class="choices" role="group" aria-labelledby="scope-label">
+              <button
+                type="button"
+                class="choice"
+                [class.selected]="scope() === 'once'"
+                [attr.aria-pressed]="scope() === 'once'"
+                (click)="scope.set('once')"
+              >
+                רק הפעם הזו
+              </button>
+              <button
+                type="button"
+                class="choice"
+                [class.selected]="scope() === 'onwards'"
+                [attr.aria-pressed]="scope() === 'onwards'"
+                (click)="scope.set('onwards')"
+              >
+                מהתאריך ואילך
+              </button>
+            </div>
+            <p class="hint">{{ scopeHint() }}</p>
+
+            <div class="actions">
+              <button type="button" class="primary" [disabled]="!canSave() || busy()" (click)="save()">
+                שמור
+              </button>
+              <button type="button" class="ghost" (click)="moving.set(false)">ביטול</button>
+            </div>
+          </section>
+        }
+      }
+
+      @if (!moving()) {
         <button type="button" class="action" [class.danger]="!cancelled()" (click)="toggleCancel()">
           <mat-icon aria-hidden="true">{{ cancelled() ? 'undo' : 'event_busy' }}</mat-icon>
           <span>{{ cancelled() ? 'מתקיים בכל זאת' : 'לא מתקיים היום' }}</span>
         </button>
-      </section>
+      }
 
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
@@ -114,6 +178,46 @@ export interface EntrySheetData {
         color: var(--accent);
       }
 
+      .row {
+        display: flex;
+        gap: 12px;
+      }
+
+      .field {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .field > span {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      input {
+        width: 100%;
+        min-height: 48px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border-strong);
+        background: var(--surface);
+        color: var(--text);
+        font: inherit;
+      }
+
+      input:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+
+      .hint {
+        margin: 8px 0 0;
+        font-size: 0.8125rem;
+        color: var(--text-faint);
+      }
+
       .action {
         display: flex;
         align-items: center;
@@ -136,6 +240,41 @@ export interface EntrySheetData {
         border-color: var(--danger);
       }
 
+      .actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 20px;
+      }
+
+      .primary {
+        flex: 1;
+        min-height: 48px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--accent);
+        color: var(--text-on-accent);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      .primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .ghost {
+        min-height: 48px;
+        padding: 0 20px;
+        border-radius: 12px;
+        border: 1px solid var(--border-strong);
+        background: none;
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
       .error {
         margin: 12px 0 0;
         color: var(--danger);
@@ -154,10 +293,39 @@ export class EntrySheetComponent {
   readonly cancelled = signal(this.data.entry.cancelled);
   readonly error = signal<string | null>(null);
 
+  readonly moving = signal(false);
+  readonly busy = signal(false);
+  readonly scope = signal<Scope>('once');
+  readonly toDate = signal<string>(this.data.date);
+  readonly toTime = signal<string>(this.data.entry.startTime);
+
   readonly members = computed(() => this.family.members());
-  readonly childName = computed(
-    () => this.family.children().find((c) => c.id === this.data.entry.childId)?.name ?? ''
-  );
+
+  /** Only a template-backed entry has a series to move. */
+  readonly canMove = computed(() => !!this.data.entry.activityId);
+
+  readonly subtitle = computed(() => {
+    const child = this.family.children().find((c) => c.id === this.data.entry.childId)?.name;
+    return [child, this.data.entry.location, this.data.entry.startTime].filter(Boolean).join(' · ');
+  });
+
+  readonly canSave = computed(() => {
+    const date = this.toDate();
+    const time = this.toTime();
+    if (!date || !time) return false;
+    return date !== this.data.date || time !== this.data.entry.startTime;
+  });
+
+  readonly scopeHint = computed(() => {
+    if (this.scope() === 'once') return 'שאר השבועות לא ישתנו.';
+    const day = DAY_NAMES[dayOfWeekOf(this.toDate() || this.data.date)];
+    return `מ-${this.toDate()} החוג יתקיים ביום ${day}. השבועות שכבר עברו יישארו כפי שהיו.`;
+  });
+
+  startMove(): void {
+    this.error.set(null);
+    this.moving.set(true);
+  }
 
   async chooseDriver(id: string | null): Promise<void> {
     const previous = this.driverId();
@@ -182,4 +350,67 @@ export class EntrySheetComponent {
       this.error.set('לא הצלחנו לשמור. נסה שוב.');
     }
   }
+
+  async save(): Promise<void> {
+    if (!this.canSave()) return;
+    this.busy.set(true);
+    this.error.set(null);
+
+    try {
+      if (this.scope() === 'once') {
+        await this.schedule.moveOccurrence(this.data.date, this.data.entry, {
+          date: this.toDate(),
+          startTime: this.toTime(),
+          endTime: this.shiftedEnd(),
+          departureTime: this.shiftedDeparture(),
+        });
+      } else {
+        await this.moveSeries();
+      }
+      this.sheetRef.dismiss(true);
+    } catch {
+      this.error.set('לא הצלחנו לשמור. נסה שוב.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  private async moveSeries(): Promise<void> {
+    const activity = this.schedule.activities().find((a) => a.id === this.data.entry.activityId);
+    if (!activity) throw new Error('missing activity');
+
+    // Replace only the weekday being moved; an activity that also runs on
+    // other days keeps them.
+    const was = dayOfWeekOf(this.data.date);
+    const now = dayOfWeekOf(this.toDate());
+    const daysOfWeek = [...new Set([...activity.daysOfWeek.filter((d) => d !== was), now])];
+
+    await this.schedule.moveSeriesFrom(this.toDate(), activity, {
+      daysOfWeek,
+      startTime: this.toTime(),
+      endTime: this.shiftedEnd(),
+      departureTime: this.shiftedDeparture(),
+    });
+  }
+
+  /** Keep the original duration and lead time when the start moves. */
+  private shiftedEnd(): string | undefined {
+    return this.shiftBy(this.data.entry.endTime);
+  }
+
+  private shiftedDeparture(): string | undefined {
+    return this.shiftBy(this.data.entry.departureTime);
+  }
+
+  private shiftBy(time: string | undefined): string | undefined {
+    if (!time) return undefined;
+    const delta = toMinutes(this.toTime()) - toMinutes(this.data.entry.startTime);
+    const total = ((toMinutes(time) + delta) % 1440 + 1440) % 1440;
+    return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+  }
+}
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
 }
