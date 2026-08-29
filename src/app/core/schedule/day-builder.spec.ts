@@ -146,6 +146,32 @@ describe('buildDayView', () => {
     expect(doubles[0].driverId).toBe('dad');
   });
 
+  it('does not call a sibling run a clash', () => {
+    // Two children, same place, same time: one journey.
+    const siblings = input({
+      activities: [
+        activity({ id: 'climb-a', childId: 'noa', title: 'קיר טיפוס', location: 'רמת ישי' }),
+        activity({ id: 'climb-b', childId: 'dan', title: 'קיר טיפוס', location: 'רמת ישי' }),
+      ],
+    });
+
+    expect(buildDayView(SUNDAY, siblings).conflicts).toHaveLength(0);
+  });
+
+  it('still flags the same driver due in two different places', () => {
+    const split = input({
+      activities: [
+        activity({ location: 'שמשית' }),
+        activity({ id: 'other', childId: 'dan', title: "נינג'ה", location: 'רמת ישי' }),
+      ],
+    });
+
+    const clashes = buildDayView(SUNDAY, split).conflicts.filter(
+      (c) => c.kind === 'driverDoubleBooked'
+    );
+    expect(clashes).toHaveLength(1);
+  });
+
   it('ignores cancelled entries when looking for conflicts', () => {
     const clash = input({
       activities: [

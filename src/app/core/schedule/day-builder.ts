@@ -159,6 +159,9 @@ function findConflicts(entries: DayEntry[]): Conflict[] {
       const b = drives[j];
       if (!a.driverId || a.driverId !== b.driverId) continue;
       if (!overlaps(a, b)) continue;
+      // Two children due at the same place at the same time is one trip, not
+      // a clash - the sibling run is the normal case, not a problem.
+      if (a.location && a.location === b.location) continue;
       conflicts.push({
         kind: 'driverDoubleBooked',
         entryIds: [a.id, b.id],
