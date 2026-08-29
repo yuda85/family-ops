@@ -22,9 +22,12 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
  * Everything you can do to one entry on one day: who drives, move it, or say
  * it is not happening.
  *
- * A move asks which weeks it applies to. Changing the template in place is
- * deliberately not offered: it would rewrite weeks that already happened, so
- * looking back would show a week that never took place.
+ * Both the driver and a move ask which weeks they apply to, but with opposite
+ * defaults. A lift rota is a standing arrangement, so the driver defaults to
+ * the whole series. A move is nearly always this week only.
+ *
+ * A move never edits the template in place: that would rewrite weeks which
+ * already happened, so looking back would show a week that never took place.
  */
 @Component({
   selector: 'app-entry-sheet',
@@ -38,6 +41,30 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
       @if (data.entry.departureTime) {
         <section>
           <h3 id="driver-label">מי מסיע</h3>
+
+          @if (canMove()) {
+            <div class="choices scope" role="group" aria-label="על אילו שבועות">
+              <button
+                type="button"
+                class="choice small"
+                [class.selected]="driverScope() === 'series'"
+                [attr.aria-pressed]="driverScope() === 'series'"
+                (click)="driverScope.set('series')"
+              >
+                כל הסדרה
+              </button>
+              <button
+                type="button"
+                class="choice small"
+                [class.selected]="driverScope() === 'once'"
+                [attr.aria-pressed]="driverScope() === 'once'"
+                (click)="driverScope.set('once')"
+              >
+                רק הפעם הזו
+              </button>
+            </div>
+          }
+
           <div class="choices" role="group" aria-labelledby="driver-label">
             @for (member of members(); track member.id) {
               <button
@@ -60,6 +87,9 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
               עדיין לא
             </button>
           </div>
+          @if (canMove()) {
+            <p class="hint">{{ driverHint() }}</p>
+          }
         </section>
       }
 
@@ -178,6 +208,16 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
         color: var(--accent);
       }
 
+      .choice.small {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 0.8125rem;
+      }
+
+      .choices.scope {
+        margin-bottom: 10px;
+      }
+
       .row {
         display: flex;
         gap: 12px;
@@ -293,6 +333,8 @@ export class EntrySheetComponent {
   readonly cancelled = signal(this.data.entry.cancelled);
   readonly error = signal<string | null>(null);
 
+  /** A lift rota is a standing arrangement, so the series is the default. */
+  readonly driverScope = signal<'series' | 'once'>('series');
   readonly moving = signal(false);
   readonly busy = signal(false);
   readonly scope = signal<Scope>('once');
@@ -316,6 +358,12 @@ export class EntrySheetComponent {
     return date !== this.data.date || time !== this.data.entry.startTime;
   });
 
+  readonly driverHint = computed(() =>
+    this.driverScope() === 'series'
+      ? `יחול על כל יום ${DAY_NAMES[dayOfWeekOf(this.data.date)]} מעכשיו.`
+      : `רק ב-${this.data.date}. שאר השבועות לא ישתנו.`
+  );
+
   readonly scopeHint = computed(() => {
     if (this.scope() === 'once') return 'שאר השבועות לא ישתנו.';
     const day = DAY_NAMES[dayOfWeekOf(this.toDate() || this.data.date)];
@@ -331,7 +379,7 @@ export class EntrySheetComponent {
     const previous = this.driverId();
     this.driverId.set(id);
     try {
-      await this.schedule.setDriver(this.data.date, this.data.entry, id);
+      await this.schedule.setDriver(this.data.date, this.data.entry, id, this.driverScope());
       this.sheetRef.dismiss();
     } catch {
       this.driverId.set(previous);

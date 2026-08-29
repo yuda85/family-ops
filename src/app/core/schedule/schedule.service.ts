@@ -5,7 +5,7 @@ import { FirestoreService, where } from '../firebase/firestore.service';
 import { FamilyService } from '../family/family.service';
 import { AuthService } from '../auth/auth.service';
 import { buildDayView, type DayInput } from './day-builder';
-import { addDays, toDateStr } from './date-utils';
+import { addDays, dayOfWeekOf, toDateStr } from './date-utils';
 import type {
   Activity,
   Availability,
@@ -160,10 +160,43 @@ export class ScheduleService {
   // not pile up documents.
   // ============================================
 
-  /** Assign or clear the driver for one entry on one date. */
-  async setDriver(date: DateStr, entry: DayEntry, driverId: string | null): Promise<void> {
+  /**
+   * Assign or clear the driver.
+   *
+   * 'series' writes the weekday's driver on the template, which is where a
+   * standing arrangement belongs - a lift rota changes often, and splitting
+   * the template on every swap would leave a pile of fragments within weeks.
+   * The cost is that looking back shows the current driver rather than
+   * whoever actually drove, which is a fact nobody needs.
+   *
+   * 'once' writes an override for that date and leaves the arrangement alone.
+   */
+  async setDriver(
+    date: DateStr,
+    entry: DayEntry,
+    driverId: string | null,
+    scope: 'series' | 'once' = 'series'
+  ): Promise<void> {
+    // A one-off event has no template behind it; only the override exists.
     if (entry.overrideId && !entry.activityId) {
       return this.updateOverride(entry.overrideId, { driverId });
+    }
+
+    if (scope === 'series' && entry.activityId) {
+      const activity = this._activities().find((a) => a.id === entry.activityId);
+      if (!activity) throw new Error('missing activity');
+
+      const drivers: Record<number, string> = { ...activity.drivers };
+      const day = dayOfWeekOf(date);
+      if (driverId) drivers[day] = driverId;
+      else delete drivers[day];
+
+      await this.updateActivity(activity.id, { drivers });
+
+      // A per-date override would keep shadowing the arrangement we just set.
+      const shadowing = this.findOverride(date, entry.activityId, 'driverChanged');
+      if (shadowing) await this.deleteOverride(shadowing.id);
+      return;
     }
 
     const existing = this.findOverride(date, entry.activityId, 'driverChanged');

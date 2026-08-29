@@ -697,8 +697,10 @@ picture {
 
 // Material sets Roboto on its overlay containers. Roboto carries no Hebrew,
 // so every `font: inherit` inside a sheet fell through to a system fallback.
+// The icon font is exempt: a bare `*` outranks `.material-symbols-rounded`,
+// which turned every icon inside a sheet back into its ligature text.
 .cdk-overlay-container,
-.cdk-overlay-container * {
+.cdk-overlay-container *:not(.material-symbols-rounded) {
   font-family: var(--font-family-hebrew);
 }
 

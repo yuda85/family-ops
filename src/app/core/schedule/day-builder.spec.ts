@@ -108,6 +108,21 @@ describe('buildDayView', () => {
     expect(view.conflicts).toHaveLength(0);
   });
 
+  it('lets a one-week driver swap stand without disturbing the arrangement', () => {
+    const swap: Override = {
+      id: 'ovr-3b',
+      date: SUNDAY,
+      type: 'driverChanged',
+      activityId: 'act-gym',
+      driverId: 'mom',
+    };
+    const data = input({ overrides: [swap] });
+
+    expect(buildDayView(SUNDAY, data).entries[0].driverId).toBe('mom');
+    // The following week goes back to whoever the template says.
+    expect(buildDayView('2026-11-22', data).entries[0].driverId).toBe('dad');
+  });
+
   it('adds a one-off event that has no template behind it', () => {
     const dentist: Override = {
       id: 'ovr-4',
