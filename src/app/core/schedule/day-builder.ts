@@ -1,7 +1,10 @@
 import type {
   Activity,
   Availability,
+  ChoreEntry,
+  ChorePlan,
   Conflict,
+  DayChore,
   DayWorkOverride,
   DateStr,
   DayEntry,
@@ -21,6 +24,8 @@ export interface DayInput {
   overrides: Override[];
   meals: Meal[];
   mealPlans?: MealPlan[];
+  chorePlans?: ChorePlan[];
+  choreEntries?: ChoreEntry[];
   availability?: Availability[];
   availabilityDays?: DayWorkOverride[];
 }
@@ -143,6 +148,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
     holiday,
     entries,
     meal: mealFor(date, dayOfWeek, input),
+    chores: choresFor(date, dayOfWeek, input),
     conflicts: findConflicts(entries),
     presence,
     shape: shapeOf(presence),
@@ -178,6 +184,45 @@ function mealFor(date: DateStr, dayOfWeek: number, input: DayInput): DayMeal | u
   }
 
   return undefined;
+}
+
+/** Repeating chores for the date, plus any one-offs, with the day's state. */
+function choresFor(date: DateStr, dayOfWeek: number, input: DayInput): DayChore[] {
+  const entries = (input.choreEntries ?? []).filter((e) => e.date === date);
+  const chores: DayChore[] = [];
+
+  for (const plan of input.chorePlans ?? []) {
+    if (plan.cadence === 'weekly' && plan.dayOfWeek !== dayOfWeek) continue;
+    if (!withinRange(date, plan.activeFrom, plan.activeUntil)) continue;
+
+    const entry = entries.find((e) => e.planId === plan.id);
+    if (entry?.cancelled) continue;
+
+    chores.push({
+      id: plan.id,
+      title: entry?.title ?? plan.title,
+      // An override may deliberately clear the assignee, so undefined and
+      // null mean different things here.
+      assigneeId: entry?.assigneeId !== undefined ? entry.assigneeId : (plan.assigneeId ?? null),
+      done: entry?.done ?? false,
+      planId: plan.id,
+      cadence: plan.cadence,
+      entryId: entry?.id,
+    });
+  }
+
+  for (const entry of entries) {
+    if (entry.planId || entry.cancelled || !entry.title) continue;
+    chores.push({
+      id: entry.id,
+      title: entry.title,
+      assigneeId: entry.assigneeId ?? null,
+      done: entry.done ?? false,
+      entryId: entry.id,
+    });
+  }
+
+  return chores;
 }
 
 function planRunsOn(plan: MealPlan, date: DateStr, dayOfWeek: number): boolean {

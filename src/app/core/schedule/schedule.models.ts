@@ -190,6 +190,52 @@ export interface Conflict {
   message: string;
 }
 
+/** How often a chore comes round. */
+export type ChoreCadence = 'daily' | 'weekly';
+
+/** A household chore that repeats. */
+export interface ChorePlan {
+  id: string;
+  title: string;
+  cadence: ChoreCadence;
+  /** Weekly plans only. */
+  dayOfWeek?: number;
+  /** Optional - plenty of chores belong to whoever gets there first. */
+  assigneeId?: string;
+  activeFrom?: DateStr;
+  activeUntil?: DateStr;
+  createdBy?: string;
+}
+
+/**
+ * One date's state for a chore: a one-off, or a change to what the plan says
+ * - including whether it has been done, which only ever applies to one day.
+ */
+export interface ChoreEntry {
+  id: string;
+  date: DateStr;
+  /** Set when this overrides a repeating plan. */
+  planId?: string;
+  title?: string;
+  assigneeId?: string | null;
+  done?: boolean;
+  cancelled?: boolean;
+  createdBy?: string;
+}
+
+/** A chore for a date, once plan and override have been combined. */
+export interface DayChore {
+  /** Stable for tracking: the plan id, or the one-off's own id. */
+  id: string;
+  title: string;
+  assigneeId: string | null;
+  done: boolean;
+  planId?: string;
+  cadence?: ChoreCadence;
+  /** The per-date document, when one exists. */
+  entryId?: string;
+}
+
 /** The dinner for a date, once plan and override have been combined. */
 export interface DayMeal {
   title: string;
@@ -217,6 +263,7 @@ export interface DayView {
   /** Sorted by start time. Cancelled entries included. */
   entries: DayEntry[];
   meal?: DayMeal;
+  chores: DayChore[];
   conflicts: Conflict[];
   /** Only members who have something recorded for this weekday. */
   presence: MemberPresence[];

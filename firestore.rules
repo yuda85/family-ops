@@ -82,6 +82,17 @@ service cloud.firestore {
         allow write: if canWrite(familyId);
       }
 
+      // Household chores: the repeating ones, and one date's state
+      match /chorePlans/{planId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
+      match /choreEntries/{entryId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if canWrite(familyId);
+      }
+
       // Repeating dinners: weekly or every other week
       match /mealPlans/{planId} {
         allow read: if isFamilyMember(familyId);

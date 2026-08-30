@@ -9,8 +9,11 @@ import { addDays, dayOfWeekOf, toDateStr } from './date-utils';
 import type {
   Activity,
   Availability,
+  ChoreEntry,
+  ChorePlan,
   DateStr,
   DayEntry,
+  DayChore,
   DayView,
   DayWork,
   DayWorkOverride,
@@ -36,6 +39,8 @@ export class ScheduleService {
   private _overrides = signal<Override[]>([]);
   private _meals = signal<Meal[]>([]);
   private _mealPlans = signal<MealPlan[]>([]);
+  private _chorePlans = signal<ChorePlan[]>([]);
+  private _choreEntries = signal<ChoreEntry[]>([]);
   private _availability = signal<Availability[]>([]);
   private _availabilityDays = signal<DayWorkOverride[]>([]);
   private _isLoading = signal(false);
@@ -44,6 +49,7 @@ export class ScheduleService {
   readonly overrides = this._overrides.asReadonly();
   readonly meals = this._meals.asReadonly();
   readonly mealPlans = this._mealPlans.asReadonly();
+  readonly chorePlans = this._chorePlans.asReadonly();
   readonly availability = this._availability.asReadonly();
   readonly availabilityDays = this._availabilityDays.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
@@ -80,6 +86,8 @@ export class ScheduleService {
       overrides: this._overrides(),
       meals: this._meals(),
       mealPlans: this._mealPlans(),
+      chorePlans: this._chorePlans(),
+      choreEntries: this._choreEntries(),
       availability: this._availability(),
       availabilityDays: this._availabilityDays(),
     };
@@ -160,6 +168,66 @@ export class ScheduleService {
   /** Skip a repeating dinner for one date without touching the plan. */
   async skipMeal(date: DateStr): Promise<void> {
     return this.firestore.setDocument(`${this.path('meals')}/${date}`, { date, cancelled: true }, false);
+  }
+
+  // ============================================
+  // Chores
+  // ============================================
+
+  /**
+   * Ticking a chore off is always about one day, so it is written as a
+   * per-date entry even when the chore repeats. The document id is derived
+   * from the date and the plan, so ticking twice cannot duplicate.
+   */
+  async setChoreDone(date: DateStr, chore: DayChore, done: boolean): Promise<void> {
+    if (chore.planId) {
+      return this.firestore.setDocument(
+        `${this.path('choreEntries')}/${date}_${chore.planId}`,
+        { date, planId: chore.planId, done },
+        true
+      );
+    }
+    return this.firestore.updateDocument(`${this.path('choreEntries')}/${chore.id}`, { done });
+  }
+
+  /** A chore for this date only. */
+  async createChore(data: Omit<ChoreEntry, 'id'>): Promise<string> {
+    return this.firestore.createDocument(this.path('choreEntries'), {
+      ...data,
+      createdBy: this.auth.user()?.id ?? null,
+    });
+  }
+
+  async updateChoreEntry(id: string, data: Partial<ChoreEntry>): Promise<void> {
+    return this.firestore.updateDocument(`${this.path('choreEntries')}/${id}`, data);
+  }
+
+  /** Change a repeating chore for one date, leaving the plan alone. */
+  async overrideChore(date: DateStr, planId: string, data: Partial<ChoreEntry>): Promise<void> {
+    return this.firestore.setDocument(
+      `${this.path('choreEntries')}/${date}_${planId}`,
+      { date, planId, ...data },
+      true
+    );
+  }
+
+  async deleteChoreEntry(id: string): Promise<void> {
+    return this.firestore.deleteDocument(`${this.path('choreEntries')}/${id}`);
+  }
+
+  async createChorePlan(data: Omit<ChorePlan, 'id'>): Promise<string> {
+    return this.firestore.createDocument(this.path('chorePlans'), {
+      ...data,
+      createdBy: this.auth.user()?.id ?? null,
+    });
+  }
+
+  async updateChorePlan(id: string, data: Partial<ChorePlan>): Promise<void> {
+    return this.firestore.updateDocument(`${this.path('chorePlans')}/${id}`, data);
+  }
+
+  async deleteChorePlan(id: string): Promise<void> {
+    return this.firestore.deleteDocument(`${this.path('chorePlans')}/${id}`);
   }
 
   async createMealPlan(data: Omit<MealPlan, 'id'>): Promise<string> {
@@ -347,6 +415,12 @@ export class ScheduleService {
         .getCollection$<MealPlan>(`${base}/mealPlans`)
         .subscribe((rows) => this._mealPlans.set(rows)),
       this.firestore
+        .getCollection$<ChorePlan>(`${base}/chorePlans`)
+        .subscribe((rows) => this._chorePlans.set(rows)),
+      this.firestore
+        .getCollection$<ChoreEntry>(`${base}/choreEntries`, where('date', '>=', since))
+        .subscribe((rows) => this._choreEntries.set(rows)),
+      this.firestore
         .getCollection$<Availability>(`${base}/availability`)
         .subscribe((rows) => this._availability.set(rows)),
       this.firestore
@@ -362,6 +436,8 @@ export class ScheduleService {
     this._overrides.set([]);
     this._meals.set([]);
     this._mealPlans.set([]);
+    this._chorePlans.set([]);
+    this._choreEntries.set([]);
     this._availability.set([]);
     this._availabilityDays.set([]);
   }

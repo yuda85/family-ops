@@ -7,13 +7,18 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
 import { addDays, toDateStr, toMinutes, toTimeStr } from '../../core/schedule/date-utils';
-import type { DayEntry, DayView } from '../../core/schedule/schedule.models';
+import type { DayChore, DayEntry, DayView } from '../../core/schedule/schedule.models';
 import { EntrySheetComponent, type EntrySheetData } from '../../shared/sheets/entry-sheet.component';
 import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
 import {
   PresenceSheetComponent,
   type PresenceSheetData,
 } from '../../shared/sheets/presence-sheet.component';
+import { ChoresSectionComponent } from '../../shared/components/chores-section/chores-section.component';
+import {
+  ChoreSheetComponent,
+  type ChoreSheetData,
+} from '../../shared/sheets/chore-sheet.component';
 
 /** A timeline row, already resolved to display strings. */
 interface Row {
@@ -36,7 +41,13 @@ interface NextUp {
 @Component({
   selector: 'app-today',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatBottomSheetModule, PresenceStripComponent],
+  imports: [
+    DatePipe,
+    MatIconModule,
+    MatBottomSheetModule,
+    PresenceStripComponent,
+    ChoresSectionComponent,
+  ],
   template: `
     <header class="day-header">
       <h1>{{ dateObj() | date: 'EEEE, d בMMMM' : undefined : 'he' }}</h1>
@@ -110,6 +121,13 @@ interface NextUp {
         <p class="empty">אין כלום היום.</p>
       }
     </section>
+
+    <app-chores-section
+      [chores]="view().chores"
+      (toggle)="toggleChore($event)"
+      (edit)="editChore($event)"
+      (add)="addChore()"
+    />
 
     <section class="tomorrow">
       <button
@@ -481,6 +499,20 @@ export class TodayComponent {
   memberName(id?: string | null): string | null {
     if (!id) return null;
     return this.family.members().find((m) => m.id === id)?.displayName ?? null;
+  }
+
+  async toggleChore(chore: DayChore): Promise<void> {
+    await this.schedule.setChoreDone(this.today(), chore, !chore.done);
+  }
+
+  editChore(chore: DayChore): void {
+    const data: ChoreSheetData = { date: this.today(), chore };
+    this.sheet.open(ChoreSheetComponent, { data });
+  }
+
+  addChore(): void {
+    const data: ChoreSheetData = { date: this.today() };
+    this.sheet.open(ChoreSheetComponent, { data });
   }
 
   editPresence(): void {

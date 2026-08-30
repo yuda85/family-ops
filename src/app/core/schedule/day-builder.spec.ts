@@ -3,6 +3,8 @@ import { buildDayView, type DayInput } from './day-builder';
 import type {
   Activity,
   Availability,
+  ChoreEntry,
+  ChorePlan,
   DayWorkOverride,
   MealPlan,
   Override,
@@ -319,6 +321,94 @@ describe('buildDayView', () => {
 
       expect(view.presence).toEqual([]);
       expect(view.shape).toBe('unknown');
+    });
+  });
+
+  describe('chores', () => {
+    const daily: ChorePlan = { id: 'c-dish', title: 'לפרוק מדיח', cadence: 'daily' };
+    const weekly: ChorePlan = {
+      id: 'c-wash',
+      title: 'כביסה',
+      cadence: 'weekly',
+      dayOfWeek: 0,
+      assigneeId: 'mom',
+    };
+
+    it('brings a daily chore round every day', () => {
+      for (const date of [SUNDAY, '2026-11-16', '2026-11-17']) {
+        expect(buildDayView(date, input({ chorePlans: [daily] })).chores).toHaveLength(1);
+      }
+    });
+
+    it('brings a weekly chore only on its day, with its assignee', () => {
+      const on = buildDayView(SUNDAY, input({ chorePlans: [weekly] }));
+      const off = buildDayView('2026-11-16', input({ chorePlans: [weekly] }));
+
+      expect(on.chores[0].title).toBe('כביסה');
+      expect(on.chores[0].assigneeId).toBe('mom');
+      expect(off.chores).toHaveLength(0);
+    });
+
+    it('leaves a chore unassigned when nobody owns it', () => {
+      expect(buildDayView(SUNDAY, input({ chorePlans: [daily] })).chores[0].assigneeId).toBeNull();
+    });
+
+    it('marks done for one date only', () => {
+      const entries: ChoreEntry[] = [{ id: 'e1', date: SUNDAY, planId: 'c-dish', done: true }];
+      const data = input({ chorePlans: [daily], choreEntries: entries });
+
+      expect(buildDayView(SUNDAY, data).chores[0].done).toBe(true);
+      expect(buildDayView('2026-11-16', data).chores[0].done).toBe(false);
+    });
+
+    it('lets one date rename a chore or hand it to someone else', () => {
+      const entries: ChoreEntry[] = [
+        { id: 'e2', date: SUNDAY, planId: 'c-wash', title: 'כביסה כהה', assigneeId: 'dad' },
+      ];
+      const data = input({ chorePlans: [weekly], choreEntries: entries });
+
+      expect(buildDayView(SUNDAY, data).chores[0].title).toBe('כביסה כהה');
+      expect(buildDayView(SUNDAY, data).chores[0].assigneeId).toBe('dad');
+      // Next week is back to the plan.
+      expect(buildDayView('2026-11-22', data).chores[0].title).toBe('כביסה');
+    });
+
+    it('distinguishes clearing the assignee from leaving it alone', () => {
+      const cleared: ChoreEntry[] = [
+        { id: 'e3', date: SUNDAY, planId: 'c-wash', assigneeId: null },
+      ];
+      const data = input({ chorePlans: [weekly], choreEntries: cleared });
+
+      expect(buildDayView(SUNDAY, data).chores[0].assigneeId).toBeNull();
+    });
+
+    it('lets one date drop a repeating chore without touching the plan', () => {
+      const entries: ChoreEntry[] = [
+        { id: 'e4', date: SUNDAY, planId: 'c-dish', cancelled: true },
+      ];
+      const data = input({ chorePlans: [daily], choreEntries: entries });
+
+      expect(buildDayView(SUNDAY, data).chores).toHaveLength(0);
+      expect(buildDayView('2026-11-16', data).chores).toHaveLength(1);
+    });
+
+    it('carries a one-off that has no plan behind it', () => {
+      const entries: ChoreEntry[] = [
+        { id: 'e5', date: SUNDAY, title: 'לשטוף את הבית', assigneeId: 'dad' },
+      ];
+      const view = buildDayView(SUNDAY, input({ choreEntries: entries }));
+
+      expect(view.chores).toHaveLength(1);
+      expect(view.chores[0].planId).toBeUndefined();
+      expect(buildDayView('2026-11-16', input({ choreEntries: entries })).chores).toHaveLength(0);
+    });
+
+    it('respects the window a chore plan is active for', () => {
+      const ended: ChorePlan = { ...daily, activeUntil: '2026-11-16' };
+      const data = input({ chorePlans: [ended] });
+
+      expect(buildDayView(SUNDAY, data).chores).toHaveLength(1);
+      expect(buildDayView('2026-11-17', data).chores).toHaveLength(0);
     });
   });
 

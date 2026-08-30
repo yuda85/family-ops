@@ -8,6 +8,7 @@ import { buildDayView, type DayInput } from '../../core/schedule/day-builder';
 import { addDays, dayOfWeekOf, toDateStr } from '../../core/schedule/date-utils';
 import type {
   Activity,
+  ChorePlan,
   DateStr,
   Meal,
   MealPlan,
@@ -106,12 +107,26 @@ function sampleInput(): DayInput {
       startCookingAt: '18:00',
     },
   ];
-  return { activities: ACTIVITIES, overrides, meals, mealPlans, availability: AVAILABILITY };
+  return {
+    activities: ACTIVITIES,
+    overrides,
+    meals,
+    mealPlans,
+    availability: AVAILABILITY,
+    chorePlans: CHORE_PLANS,
+    choreEntries: [{ id: 'ce1', date: today, planId: 'c1', done: true }],
+  };
 }
 
 const AVAILABILITY = [
   { id: 'm1', days: { 0: { worksFromHome: true }, 1: { worksFromHome: false, returnTime: '18:30' } } },
   { id: 'm2', days: { 0: { worksFromHome: false, returnTime: '16:00' }, 1: { worksFromHome: false, returnTime: '19:00' } } },
+];
+
+const CHORE_PLANS: ChorePlan[] = [
+  { id: 'c1', title: 'לפרוק מדיח', cadence: 'daily' },
+  { id: 'c2', title: 'לסדר סלון', cadence: 'daily', assigneeId: 'm2' },
+  { id: 'c3', title: 'כביסה', cadence: 'weekly', dayOfWeek: 0, assigneeId: 'm1' },
 ];
 
 export const PREVIEW_PROVIDERS: Provider[] = [
@@ -134,6 +149,15 @@ export const PREVIEW_PROVIDERS: Provider[] = [
       setMeal: async () => undefined,
       deleteMeal: async () => undefined,
       skipMeal: async () => undefined,
+      chorePlans: () => CHORE_PLANS,
+      setChoreDone: async () => undefined,
+      createChore: async () => 'preview',
+      updateChoreEntry: async () => undefined,
+      overrideChore: async () => undefined,
+      deleteChoreEntry: async () => undefined,
+      createChorePlan: async () => 'preview',
+      updateChorePlan: async () => undefined,
+      deleteChorePlan: async () => undefined,
       createMealPlan: async () => 'preview',
       updateMealPlan: async () => undefined,
       deleteMealPlan: async () => undefined,
