@@ -17,13 +17,15 @@ import type { DayChore } from '../../../core/schedule/schedule.models';
   standalone: true,
   imports: [MatIconModule],
   template: `
-    <section class="chores" aria-label="מטלות">
-      <h2>
-        מטלות
-        @if (open().length) {
-          <span class="count">{{ open().length }}</span>
-        }
-      </h2>
+    <section class="chores" [class.embedded]="embedded()" aria-label="מטלות">
+      @if (!embedded()) {
+        <h2>
+          מטלות
+          @if (open().length) {
+            <span class="count">{{ open().length }}</span>
+          }
+        </h2>
+      }
 
       @for (chore of open(); track chore.id) {
         <div class="row">
@@ -94,6 +96,13 @@ import type { DayChore } from '../../../core/schedule/schedule.models';
         margin-top: 24px;
         padding-top: 16px;
         border-top: 1px solid var(--border);
+      }
+
+      /* Inside a day card the row above already names and separates it. */
+      .chores.embedded {
+        margin-top: 0;
+        padding-top: 4px;
+        border-top: 0;
       }
 
       h2 {
@@ -224,6 +233,8 @@ import type { DayChore } from '../../../core/schedule/schedule.models';
 })
 export class ChoresSectionComponent {
   readonly chores = input.required<DayChore[]>();
+  /** Rendered inside a card that already provides the heading. */
+  readonly embedded = input(false);
   readonly toggle = output<DayChore>();
   readonly edit = output<DayChore>();
   readonly add = output<void>();

@@ -7,7 +7,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { FamilyService } from '../../core/family/family.service';
 import { ScheduleService } from '../../core/schedule/schedule.service';
 import { addDays, dayOfWeekOf, toDateStr } from '../../core/schedule/date-utils';
-import type { Cadence, DayEntry, DayView } from '../../core/schedule/schedule.models';
+import type { Cadence, DayChore, DayEntry, DayView } from '../../core/schedule/schedule.models';
 import {
   EntrySheetComponent,
   type EntrySheetData,
@@ -18,6 +18,11 @@ import {
   type EventSheetData,
 } from '../../shared/sheets/event-sheet.component';
 import { PresenceStripComponent } from '../../shared/components/presence-strip/presence-strip.component';
+import { ChoresSectionComponent } from '../../shared/components/chores-section/chores-section.component';
+import {
+  ChoreSheetComponent,
+  type ChoreSheetData,
+} from '../../shared/sheets/chore-sheet.component';
 import {
   PresenceSheetComponent,
   type PresenceSheetData,
@@ -48,7 +53,13 @@ interface DayCard {
 @Component({
   selector: 'app-week',
   standalone: true,
-  imports: [DatePipe, MatIconModule, MatBottomSheetModule, PresenceStripComponent],
+  imports: [
+    DatePipe,
+    MatIconModule,
+    MatBottomSheetModule,
+    PresenceStripComponent,
+    ChoresSectionComponent,
+  ],
   template: `
     <header class="week-header">
       <button type="button" class="nav" (click)="shift(-7)" aria-label="שבוע קודם">
@@ -125,6 +136,34 @@ interface DayCard {
           <mat-icon aria-hidden="true">add</mat-icon>
           <span>אירוע חד-פעמי</span>
         </button>
+
+        <!-- One line until asked. Seven open checklists at once is a wall. -->
+        <button
+          type="button"
+          class="entry chores-row"
+          [attr.aria-expanded]="openChores() === day.view.date"
+          (click)="toggleChores(day)"
+        >
+          <span class="entry-time">
+            <mat-icon aria-hidden="true">checklist</mat-icon>
+          </span>
+          <span class="entry-title" [class.muted]="!day.view.chores.length">
+            {{ choresLabel(day) }}
+          </span>
+          <mat-icon class="chev" aria-hidden="true">
+            {{ openChores() === day.view.date ? 'expand_less' : 'expand_more' }}
+          </mat-icon>
+        </button>
+
+        @if (openChores() === day.view.date) {
+          <app-chores-section
+            [chores]="day.view.chores"
+            [embedded]="true"
+            (toggle)="toggleChore(day, $event)"
+            (edit)="editChore(day, $event)"
+            (add)="addChore(day)"
+          />
+        }
       </section>
     }
   `,
@@ -325,6 +364,15 @@ interface DayCard {
         width: 20px;
         height: 20px;
       }
+
+      .chores-row .chev {
+        flex: 0 0 auto;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: var(--text-faint);
+      }
+
     `,
   ],
 })
@@ -394,6 +442,34 @@ export class WeekComponent {
   editEntry(day: DayCard, row: EntryRow): void {
     const data: EntrySheetData = { date: day.view.date, entry: row.entry };
     this.sheet.open(EntrySheetComponent, { data });
+  }
+
+  /** Only one day's list is open at a time, so the week stays calm. */
+  readonly openChores = signal<string | null>(null);
+
+  toggleChores(day: DayCard): void {
+    this.openChores.update((d) => (d === day.view.date ? null : day.view.date));
+  }
+
+  choresLabel(day: DayCard): string {
+    const chores = day.view.chores;
+    if (!chores.length) return 'מטלות?';
+    const open = chores.filter((c) => !c.done).length;
+    return open ? `מטלות · ${open}` : 'מטלות · הכל בוצע';
+  }
+
+  async toggleChore(day: DayCard, chore: DayChore): Promise<void> {
+    await this.schedule.setChoreDone(day.view.date, chore, !chore.done);
+  }
+
+  editChore(day: DayCard, chore: DayChore): void {
+    const data: ChoreSheetData = { date: day.view.date, chore };
+    this.sheet.open(ChoreSheetComponent, { data });
+  }
+
+  addChore(day: DayCard): void {
+    const data: ChoreSheetData = { date: day.view.date };
+    this.sheet.open(ChoreSheetComponent, { data });
   }
 
   editPresence(day: DayCard): void {
