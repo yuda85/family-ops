@@ -147,6 +147,55 @@ describe('buildDayView', () => {
     expect(view.entries.map((e) => e.title)).toEqual(['רופא שיניים', 'התעמלות']);
   });
 
+  describe('no ride needed', () => {
+    it('stops asking who drives when the activity says nobody has to', () => {
+      const walks = input({ activities: [activity({ noRide: true, drivers: {} })] });
+      const view = buildDayView(SUNDAY, walks);
+
+      expect(view.entries[0].needsRide).toBe(false);
+      expect(view.conflicts).toHaveLength(0);
+    });
+
+    it('keeps the departure time, so turning it back on loses nothing', () => {
+      const walks = input({ activities: [activity({ noRide: true })] });
+      expect(buildDayView(SUNDAY, walks).entries[0].departureTime).toBe('15:35');
+    });
+
+    it('lets one date say nobody has to drive', () => {
+      const justToday: Override = {
+        id: 'ovr-nr',
+        date: SUNDAY,
+        type: 'driverChanged',
+        activityId: 'act-gym',
+        noRide: true,
+      };
+      const data = input({ overrides: [justToday] });
+
+      expect(buildDayView(SUNDAY, data).entries[0].needsRide).toBe(false);
+      // Next week still needs driving.
+      expect(buildDayView('2026-11-22', data).entries[0].needsRide).toBe(true);
+    });
+
+    it('lets one date reinstate a drive the activity waived', () => {
+      const justToday: Override = {
+        id: 'ovr-nr2',
+        date: SUNDAY,
+        type: 'driverChanged',
+        activityId: 'act-gym',
+        noRide: false,
+      };
+      const data = input({ activities: [activity({ noRide: true })], overrides: [justToday] });
+
+      expect(buildDayView(SUNDAY, data).entries[0].needsRide).toBe(true);
+      expect(buildDayView('2026-11-22', data).entries[0].needsRide).toBe(false);
+    });
+
+    it('needs no ride when there is no departure time at all', () => {
+      const noTime = input({ activities: [activity({ departureTime: undefined })] });
+      expect(buildDayView(SUNDAY, noTime).entries[0].needsRide).toBe(false);
+    });
+  });
+
   it('reports a drive nobody owns', () => {
     const orphan = input({ activities: [activity({ drivers: {} })] });
     const view = buildDayView(SUNDAY, orphan);

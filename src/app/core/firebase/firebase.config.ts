@@ -34,6 +34,12 @@ export function initializeFirebase(): { app: FirebaseApp; db: Firestore; auth: A
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),
     }),
+    // Optional fields are modelled as `undefined` throughout. Without this,
+    // Firestore rejects the whole write with "Unsupported field value:
+    // undefined" - so an event with no location simply could not be saved.
+    // With it, undefined means "do not write this field", which is the intent
+    // everywhere. Clearing a stored field is done by deleting the document.
+    ignoreUndefinedProperties: true,
   });
 
   // Initialize Auth

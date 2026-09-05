@@ -35,6 +35,12 @@ export interface Activity {
   endTime?: TimeStr;
   /** When someone has to leave to make it. Source of the departure alerts. */
   departureTime?: TimeStr;
+  /**
+   * Nobody has to drive: they walk, or there is organised transport. Kept
+   * separate from clearing the departure time so the time survives if the
+   * arrangement changes back.
+   */
+  noRide?: boolean;
   drivers: Record<number, string>;
   prepItems: PrepItem[];
   activeFrom?: DateStr;
@@ -70,6 +76,7 @@ export interface Override {
   startTime?: TimeStr;
   endTime?: TimeStr;
   departureTime?: TimeStr;
+  noRide?: boolean;
   /** null explicitly clears the driver. */
   driverId?: string | null;
   prepItems?: PrepItem[];
@@ -167,6 +174,10 @@ export interface DayEntry {
   startTime: TimeStr;
   endTime?: TimeStr;
   departureTime?: TimeStr;
+  /** False when nobody has to drive, whatever the departure time says. */
+  needsRide: boolean;
+  /** Carried so an edit can show the current setting. */
+  noRide?: boolean;
   /** null = nobody assigned. */
   driverId: string | null;
   /** A cancelled entry stays visible - hiding it is how things get missed. */

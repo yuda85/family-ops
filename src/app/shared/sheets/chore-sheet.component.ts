@@ -367,11 +367,10 @@ export class ChoreSheetComponent {
       assigneeId: assigneeId ?? undefined,
     });
 
-    // A per-date override would keep shadowing what we just changed.
+    // A per-date override would keep shadowing what we just changed. It has
+    // to be removed rather than blanked: undefined now means "leave alone".
     if (this.data.chore?.entryId) {
-      await this.schedule
-        .overrideChore(this.data.date, planId, { title: undefined, assigneeId: undefined })
-        .catch(() => undefined);
+      await this.schedule.deleteChoreEntry(this.data.chore.entryId).catch(() => undefined);
     }
   }
 }

@@ -69,6 +69,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
       startTime: activity.startTime,
       endTime: activity.endTime,
       departureTime: activity.departureTime,
+      needsRide: !!activity.departureTime && !activity.noRide,
       driverId: activity.drivers[dayOfWeek] ?? null,
       cancelled: false,
       prepItems: activity.prepItems ?? [],
@@ -113,6 +114,9 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
       startTime: override.startTime ?? activity.startTime,
       endTime: override.endTime ?? activity.endTime,
       departureTime: override.departureTime ?? activity.departureTime,
+      needsRide:
+        !!(override.departureTime ?? activity.departureTime) &&
+        !(override.noRide ?? activity.noRide),
       driverId: override.driverId ?? activity.drivers[dayOfWeek] ?? null,
       cancelled: false,
       movedFromDate: override.date,
@@ -132,6 +136,7 @@ export function buildDayView(date: DateStr, input: DayInput): DayView {
       startTime: override.startTime ?? '00:00',
       endTime: override.endTime,
       departureTime: override.departureTime,
+      needsRide: !!override.departureTime && !override.noRide,
       driverId: override.driverId ?? null,
       cancelled: false,
       prepItems: override.prepItems ?? [],
@@ -296,6 +301,10 @@ function applyOverride(entry: DayEntry, override: Override): DayEntry {
       }
       if (override.endTime !== undefined) next.endTime = override.endTime;
       if (override.location !== undefined) next.location = override.location;
+      if (override.noRide !== undefined) {
+        next.noRide = override.noRide;
+        next.needsRide = !!next.departureTime && !override.noRide;
+      }
       if (override.departureTime !== undefined) next.departureTime = override.departureTime;
       if (override.driverId !== undefined) next.driverId = override.driverId;
       // An explicit reschedule overrides a calendar-driven cancellation.
@@ -305,6 +314,10 @@ function applyOverride(entry: DayEntry, override: Override): DayEntry {
 
     case 'driverChanged':
       if (override.driverId !== undefined) next.driverId = override.driverId;
+      if (override.noRide !== undefined) {
+        next.noRide = override.noRide;
+        next.needsRide = !!next.departureTime && !override.noRide;
+      }
       next.cancelled = false;
       next.cancelReason = undefined;
       break;
@@ -327,7 +340,7 @@ function applyOverride(entry: DayEntry, override: Override): DayEntry {
  */
 function findConflicts(entries: DayEntry[]): Conflict[] {
   const conflicts: Conflict[] = [];
-  const drives = entries.filter((e) => !e.cancelled && e.departureTime);
+  const drives = entries.filter((e) => !e.cancelled && e.needsRide);
 
   for (const entry of drives) {
     if (entry.driverId === null) {

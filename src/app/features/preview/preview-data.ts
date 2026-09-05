@@ -85,6 +85,17 @@ function sampleInput(): DayInput {
   const today = toDateStr(new Date());
   const overrides: Override[] = [
     { id: 'o1', date: today, type: 'cancelled', activityId: 'a4', reason: 'המורה חולה' },
+    {
+      id: 'o2',
+      date: today,
+      type: 'added',
+      childId: 'c3',
+      title: 'רופא שיניים',
+      location: 'רמת ישי',
+      startTime: '09:00',
+      departureTime: '08:30',
+      driverId: 'm1',
+    },
   ];
   const meals: Meal[] = [
     { id: today, date: today, title: 'שניצל ופירה', startCookingAt: '18:00' },

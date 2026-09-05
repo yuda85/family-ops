@@ -92,7 +92,7 @@ interface NextUp {
             <span class="row-title">{{ row.entry.title }}</span>
             <span class="row-sub">{{ subtitle(row) }}</span>
           </span>
-          @if (!row.entry.cancelled && row.entry.departureTime) {
+          @if (!row.entry.cancelled && row.entry.needsRide) {
             @if (row.driverName) {
               <span class="row-driver" [class.mine]="row.isMine">{{ row.driverName }}</span>
             } @else {
@@ -435,7 +435,7 @@ export class TodayComponent {
       .filter((r) => !r.entry.cancelled)
       .map((row) => {
         // Once the departure time has passed, the thing itself is still ahead.
-        const departure = row.entry.departureTime ? toMinutes(row.entry.departureTime) : null;
+        const departure = row.entry.needsRide ? toMinutes(row.entry.departureTime!) : null;
         const start = toMinutes(row.entry.startTime);
         const at = departure !== null && departure >= minutes ? departure : start;
         return { row, at, leaving: at === departure };
@@ -471,7 +471,7 @@ export class TodayComponent {
     const parts = [row.childName, row.entry.location].filter(Boolean);
     if (row.entry.cancelled) {
       parts.push(row.entry.cancelReason ? `לא מתקיים — ${row.entry.cancelReason}` : 'לא מתקיים');
-    } else if (row.entry.departureTime) {
+    } else if (row.entry.needsRide) {
       parts.push(`יציאה ${row.entry.departureTime}`);
     }
     return parts.join(' · ');

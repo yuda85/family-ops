@@ -212,7 +212,9 @@ function briefBody(day: DayView, data: PlannerData): string {
 
   for (const entry of live) {
     const driver = memberName(data, entry.driverId);
-    const leave = entry.departureTime ? ` (יציאה ${entry.departureTime}${driver ? `, ${driver}` : ''})` : '';
+    const leave = entry.needsRide
+      ? ` (יציאה ${entry.departureTime}${driver ? `, ${driver}` : ''})`
+      : '';
     const place = entry.location ? ` · ${entry.location}` : '';
     lines.push(`${entry.startTime} ${entry.title} · ${childName(data, entry.childId)}${place}${leave}`);
   }
@@ -239,7 +241,7 @@ function briefBody(day: DayView, data: PlannerData): string {
 }
 
 function departuresBody(day: DayView, data: PlannerData): string | null {
-  const drives = day.entries.filter((e) => !e.cancelled && e.departureTime);
+  const drives = day.entries.filter((e) => !e.cancelled && e.needsRide);
   if (!drives.length) return null;
 
   return drives
@@ -266,7 +268,7 @@ function groupDrivesByDriver(day: DayView): Map<string, DayEntry[]> {
   const byDriver = new Map<string, DayEntry[]>();
 
   for (const entry of day.entries) {
-    if (entry.cancelled || !entry.departureTime || !entry.driverId) continue;
+    if (entry.cancelled || !entry.needsRide || !entry.driverId) continue;
     const list = byDriver.get(entry.driverId) ?? [];
     list.push(entry);
     byDriver.set(entry.driverId, list);

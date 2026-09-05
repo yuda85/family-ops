@@ -80,11 +80,20 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
             <button
               type="button"
               class="choice"
-              [class.selected]="driverId() === null"
-              [attr.aria-pressed]="driverId() === null"
+              [class.selected]="!noRide() && driverId() === null"
+              [attr.aria-pressed]="!noRide() && driverId() === null"
               (click)="chooseDriver(null)"
             >
               עדיין לא
+            </button>
+            <button
+              type="button"
+              class="choice"
+              [class.selected]="noRide()"
+              [attr.aria-pressed]="noRide()"
+              (click)="chooseNoRide()"
+            >
+              ללא הסעה
             </button>
           </div>
           @if (canMove()) {
@@ -148,8 +157,8 @@ const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמיש
 
       @if (!moving()) {
         <button type="button" class="action" [class.danger]="!cancelled()" (click)="toggleCancel()">
-          <mat-icon aria-hidden="true">{{ cancelled() ? 'undo' : 'event_busy' }}</mat-icon>
-          <span>{{ cancelled() ? 'מתקיים בכל זאת' : 'לא מתקיים היום' }}</span>
+          <mat-icon aria-hidden="true">{{ removeIcon() }}</mat-icon>
+          <span>{{ removeLabel() }}</span>
         </button>
       }
 
@@ -330,6 +339,7 @@ export class EntrySheetComponent {
   private family = inject(FamilyService);
 
   readonly driverId = signal<string | null>(this.data.entry.driverId);
+  readonly noRide = signal(!this.data.entry.needsRide && !!this.data.entry.departureTime);
   readonly cancelled = signal(this.data.entry.cancelled);
   readonly error = signal<string | null>(null);
 
@@ -358,6 +368,19 @@ export class EntrySheetComponent {
     return date !== this.data.date || time !== this.data.entry.startTime;
   });
 
+  /** A one-off has no template behind it, so it is deleted rather than cancelled. */
+  readonly isOneOff = computed(() => !this.data.entry.activityId);
+
+  readonly removeLabel = computed(() => {
+    if (this.isOneOff()) return 'מחק';
+    return this.cancelled() ? 'מתקיים בכל זאת' : 'לא מתקיים היום';
+  });
+
+  readonly removeIcon = computed(() => {
+    if (this.isOneOff()) return 'delete';
+    return this.cancelled() ? 'undo' : 'event_busy';
+  });
+
   readonly driverHint = computed(() =>
     this.driverScope() === 'series'
       ? `יחול על כל יום ${DAY_NAMES[dayOfWeekOf(this.data.date)]} מעכשיו.`
@@ -379,6 +402,11 @@ export class EntrySheetComponent {
     const previous = this.driverId();
     this.driverId.set(id);
     try {
+      // Naming a driver implies there is a drive again.
+      if (this.noRide()) {
+        await this.schedule.setNoRide(this.data.date, this.data.entry, false, this.driverScope());
+        this.noRide.set(false);
+      }
       await this.schedule.setDriver(this.data.date, this.data.entry, id, this.driverScope());
       this.sheetRef.dismiss();
     } catch {
@@ -387,14 +415,26 @@ export class EntrySheetComponent {
     }
   }
 
-  async toggleCancel(): Promise<void> {
-    const next = !this.cancelled();
-    this.cancelled.set(next);
+  async chooseNoRide(): Promise<void> {
+    this.noRide.set(true);
     try {
-      await this.schedule.setCancelled(this.data.date, this.data.entry, next);
+      await this.schedule.setNoRide(this.data.date, this.data.entry, true, this.driverScope());
       this.sheetRef.dismiss();
     } catch {
-      this.cancelled.set(!next);
+      this.noRide.set(false);
+      this.error.set('לא הצלחנו לשמור. נסה שוב.');
+    }
+  }
+
+  async toggleCancel(): Promise<void> {
+    try {
+      if (this.isOneOff() || !this.cancelled()) {
+        await this.schedule.removeEntry(this.data.date, this.data.entry);
+      } else {
+        await this.schedule.setCancelled(this.data.date, this.data.entry, false);
+      }
+      this.sheetRef.dismiss(true);
+    } catch {
       this.error.set('לא הצלחנו לשמור. נסה שוב.');
     }
   }

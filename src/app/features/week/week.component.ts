@@ -101,7 +101,7 @@ interface DayCard {
             <span class="entry-time">{{ row.entry.startTime }}</span>
             <span class="entry-bar" [style.background]="row.childColor" aria-hidden="true"></span>
             <span class="entry-title">{{ entryLabel(row) }}</span>
-            @if (!row.entry.cancelled && row.entry.departureTime) {
+            @if (!row.entry.cancelled && row.entry.needsRide) {
               @if (row.driverName) {
                 <span class="driver" [class.mine]="row.isMine">{{ row.driverName }}</span>
               } @else {

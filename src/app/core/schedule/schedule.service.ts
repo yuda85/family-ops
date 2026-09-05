@@ -353,6 +353,50 @@ export class ScheduleService {
     });
   }
 
+  /**
+   * Say whether this needs driving at all. Same scopes as the driver: the
+   * arrangement usually holds, but a single week can differ.
+   */
+  async setNoRide(
+    date: DateStr,
+    entry: DayEntry,
+    noRide: boolean,
+    scope: 'series' | 'once' = 'series'
+  ): Promise<void> {
+    if (entry.overrideId && !entry.activityId) {
+      return this.updateOverride(entry.overrideId, { noRide });
+    }
+
+    if (scope === 'series' && entry.activityId) {
+      await this.updateActivity(entry.activityId, { noRide });
+      const shadowing = this.findOverride(date, entry.activityId, 'driverChanged');
+      if (shadowing) await this.deleteOverride(shadowing.id);
+      return;
+    }
+
+    const existing = this.findOverride(date, entry.activityId, 'driverChanged');
+    if (existing) return this.updateOverride(existing.id, { noRide });
+
+    await this.createOverride({
+      date,
+      type: 'driverChanged',
+      activityId: entry.activityId,
+      noRide,
+    });
+  }
+
+  /**
+   * Remove an entry from a day. A one-off has no template behind it, so there
+   * is nothing to cancel - the document itself goes. Anything backed by a
+   * template is cancelled instead, staying visible and struck through.
+   */
+  async removeEntry(date: DateStr, entry: DayEntry): Promise<void> {
+    if (entry.overrideId && !entry.activityId) {
+      return this.deleteOverride(entry.overrideId);
+    }
+    return this.setCancelled(date, entry, true);
+  }
+
   /** Cancel an entry for one date, or undo a cancellation. */
   async setCancelled(
     date: DateStr,
